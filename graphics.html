@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphics Design Works | Ikeoluwa Makinwa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        .gallery-header {
+            padding: 40px 20px;
+            text-align: center;
+            background-color: var(--bg-secondary);
+        }
+        .gallery-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            transition: color 0.2s, transform 0.2s;
+        }
+        .gallery-back-link:hover {
+            color: #fff;
+            transform: translateX(-4px);
+        }
+        .gallery-showcase-grid {
+            max-width: 1100px;
+            margin: 50px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 36px;
+        }
+        .gallery-item {
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 2px solid var(--text-primary);
+            overflow: hidden;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .gallery-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+        }
+        .gallery-item-art {
+            height: 240px;
+            position: relative;
+            background: #c3daf2;
+        }
+        .gallery-item-body {
+            padding: 24px;
+            text-align: left;
+        }
+        .gallery-item-body h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .gallery-item-body p {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .gallery-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .gallery-tag {
+            background: rgba(237, 232, 209, 0.15);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Gallery Header -->
+    <header class="gallery-header">
+        <a href="index.html" class="gallery-back-link">&larr; Back to Portfolio Home</a>
+        <h1 class="section-title">Graphics Design & Brand Identity</h1>
+        <p class="section-subtitle">Completed Client Projects, Creative Directions & Qualifications</p>
+    </header>
+
+    <main>
+        <!-- Showcase Grid -->
+        <section class="gallery-showcase-grid">
+            <!-- Project 1 -->
+            <article class="gallery-item">
+                <div class="gallery-item-art">
+                    <div class="artwork-landscape">
+                        <div class="art-cloud"></div>
+                        <div class="art-hill back-hill"></div>
+                        <div class="art-hill front-hill"></div>
+                    </div>
+                </div>
+                <div class="gallery-item-body">
+                    <h3>God's Own Creche</h3>
+                    <p>Complete visual identity, logo iconography, and branding assets tailored for an early childhood education center.</p>
+                    <div class="gallery-tags">
+                        <span class="gallery-tag">Adobe Illustrator</span>
+                        <span class="gallery-tag">Brand Identity</span>
+                        <span class="gallery-tag">Logo</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 2 -->
+            <article class="gallery-item">
+                <div class="gallery-item-art">
+                    <div class="artwork-landscape">
+                        <div class="art-cloud"></div>
+                        <div class="art-hill back-hill" style="background: #e37e2b;"></div>
+                        <div class="art-hill front-hill" style="background: #be580f;"></div>
+                    </div>
+                </div>
+                <div class="gallery-item-body">
+                    <h3>Echo Summit 2026</h3>
+                    <p>Publicity materials, event badges, speaker spotlight flyers, and social media banners for an innovation summit.</p>
+                    <div class="gallery-tags">
+                        <span class="gallery-tag">Photoshop</span>
+                        <span class="gallery-tag">Canva</span>
+                        <span class="gallery-tag">Event Design</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 3 -->
+            <article class="gallery-item">
+                <div class="gallery-item-art">
+                    <div class="artwork-landscape">
+                        <div class="art-cloud"></div>
+                        <div class="art-hill back-hill" style="background: #2b70e3;"></div>
+                        <div class="art-hill front-hill" style="background: #17489c;"></div>
+                    </div>
+                </div>
+                <div class="gallery-item-body">
+                    <h3>Nexus Creative Studios</h3>
+                    <p>Modern typographic monogram, vector assets, stationery, and comprehensive design brand guidelines.</p>
+                    <div class="gallery-tags">
+                        <span class="gallery-tag">Figma</span>
+                        <span class="gallery-tag">Vector Art</span>
+                        <span class="gallery-tag">Stationery</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 4 -->
+            <article class="gallery-item">
+                <div class="gallery-item-art">
+                    <div class="artwork-landscape">
+                        <div class="art-cloud"></div>
+                        <div class="art-hill back-hill" style="background: #6a2be3;"></div>
+                        <div class="art-hill front-hill" style="background: #4814a7;"></div>
+                    </div>
+                </div>
+                <div class="gallery-item-body">
+                    <h3>Velo Energy Drink Concept</h3>
+                    <p>Label design, 3D mockups, and typography composition for a modern high-energy beverage brand.</p>
+                    <div class="gallery-tags">
+                        <span class="gallery-tag">Photoshop</span>
+                        <span class="gallery-tag">Packaging</span>
+                        <span class="gallery-tag">3D Mockup</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        &copy; 2026 Ikeoluwa Makinwa. All Rights Reserved. &bull; <a href="index.html" style="text-decoration: underline;">Home</a>
+    </footer>
+
+</body>
+</html>
