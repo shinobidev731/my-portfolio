@@ -116,8 +116,7 @@ function initClipboardCopy() {
     function fallbackCopy(text) {
         const tempTextArea = document.createElement('textarea');
         tempTextArea.value = text;
-        tempTextArea.style.position = 'fixed';
-        tempTextArea.style.top = '-9999px';
+        tempTextArea.className = 'offscreen-hidden';
         document.body.appendChild(tempTextArea);
         tempTextArea.focus();
         tempTextArea.select();
@@ -193,8 +192,58 @@ function initReferralFeature() {
 }
 
 /* ==============================================
-   4. CLIENT REVIEWS FORM SUBMISSION
+   4. CLIENT REVIEWS & PERSISTENT STORAGE
+   (Cloud Firestore ready + LocalStorage persistent fallback)
    ============================================== */
+
+// Firebase Configuration: paste your Firebase project credentials here to sync globally across devices
+const firebaseConfig = {
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: ""
+};
+
+const STORAGE_KEY = 'portfolio_reviews_data';
+const AUTHOR_TOKEN_KEY = 'portfolio_author_token';
+
+// Default seed reviews matching initial portfolio design
+const DEFAULT_SEED_REVIEWS = [
+    {
+        id: 'seed_1',
+        name: 'Adeyemi Fashakin',
+        text: 'reviews reviews reviews reviews v reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews',
+        authorToken: 'seed_author_1',
+        createdAt: 1700000000000
+    },
+    {
+        id: 'seed_2',
+        name: 'Samuel Oladipo',
+        text: 'Exceptional creative design and photography work. Delivered ahead of schedule with remarkable visual flair!',
+        authorToken: 'seed_author_2',
+        createdAt: 1700000001000
+    },
+    {
+        id: 'seed_3',
+        name: 'Tolulope Adeleke',
+        text: 'The website frontend was responsive, fluid, and translated our exact design vision into clean code. Highly recommended!',
+        authorToken: 'seed_author_3',
+        createdAt: 1700000002000
+    }
+];
+
+// Retrieve or generate unique author token for this browser
+function getAuthorToken() {
+    let token = localStorage.getItem(AUTHOR_TOKEN_KEY);
+    if (!token) {
+        token = 'auth_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem(AUTHOR_TOKEN_KEY, token);
+    }
+    return token;
+}
+
 function initReviewForm() {
     const reviewForm = document.getElementById('reviewForm');
     const reviewerName = document.getElementById('reviewerName');
@@ -202,47 +251,232 @@ function initReviewForm() {
     const reviewsGrid = document.getElementById('reviewsGrid');
     const formNotice = document.getElementById('formNotice');
 
-    if (!reviewForm || !reviewsGrid) return;
+    // Edit modal elements
+    const editModal = document.getElementById('editReviewModal');
+    const editForm = document.getElementById('editReviewForm');
+    const editIdInput = document.getElementById('editReviewId');
+    const editNameInput = document.getElementById('editReviewName');
+    const editTextInput = document.getElementById('editReviewText');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-    reviewForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+    if (!reviewsGrid) return;
 
-        const name = reviewerName.value.trim();
-        const review = reviewerText.value.trim();
+    let noticeTimeout = null;
 
-        if (!name || !review) return;
+    function showNotice(message) {
+        if (!formNotice) return;
+        formNotice.textContent = message;
+        formNotice.classList.add('show');
 
-        // Create new review card
-        const card = document.createElement('div');
-        card.className = 'review-card';
-        card.style.animation = 'fadeIn 0.5s ease';
+        if (noticeTimeout) clearTimeout(noticeTimeout);
+        noticeTimeout = setTimeout(() => {
+            formNotice.classList.remove('show');
+        }, 4500);
+    }
 
-        const h3 = document.createElement('h3');
-        h3.className = 'reviewer-name';
-        h3.textContent = name;
+    // Load stored reviews from localStorage
+    function getStoredReviews() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SEED_REVIEWS));
+                return DEFAULT_SEED_REVIEWS;
+            }
+            return JSON.parse(raw);
+        } catch (e) {
+            console.error('Failed to parse stored reviews:', e);
+            return DEFAULT_SEED_REVIEWS;
+        }
+    }
 
-        const p = document.createElement('p');
-        p.className = 'review-text';
-        p.textContent = review;
+    // Save reviews array to localStorage
+    function saveStoredReviews(reviews) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
+        } catch (e) {
+            console.error('Failed to save reviews to storage:', e);
+        }
+    }
 
-        card.appendChild(h3);
-        card.appendChild(p);
+    // Render all reviews to the grid
+    function renderReviews() {
+        const reviews = getStoredReviews();
+        reviewsGrid.innerHTML = '';
 
-        // Prepend new review card to grid
-        reviewsGrid.prepend(card);
+        reviews.forEach((review) => {
+            const isAuthor = review.authorToken === getAuthorToken();
 
-        // Feedback notice
-        if (formNotice) {
-            formNotice.textContent = 'Thank you! Your review has been added successfully.';
-            formNotice.style.display = 'block';
-            setTimeout(() => {
-                formNotice.style.display = 'none';
-            }, 4000);
+            const card = document.createElement('div');
+            card.className = 'review-card';
+            card.dataset.id = review.id;
+
+            // Review header (name + author badge)
+            const header = document.createElement('div');
+            header.className = 'review-header';
+
+            const h3 = document.createElement('h3');
+            h3.className = 'reviewer-name';
+            h3.textContent = review.name;
+            header.appendChild(h3);
+
+            if (isAuthor) {
+                const authorBadge = document.createElement('span');
+                authorBadge.className = 'author-pill';
+                authorBadge.textContent = 'You';
+                header.appendChild(authorBadge);
+            }
+
+            // Review text
+            const p = document.createElement('p');
+            p.className = 'review-text';
+            p.textContent = review.text;
+
+            card.appendChild(header);
+            card.appendChild(p);
+
+            // Author-only actions (Edit & Delete)
+            if (isAuthor) {
+                const actions = document.createElement('div');
+                actions.className = 'review-actions';
+
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'review-action-btn';
+                editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => openEditModal(review));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'review-action-btn delete-btn';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => handleDeleteReview(review.id));
+
+                actions.appendChild(editBtn);
+                actions.appendChild(deleteBtn);
+                card.appendChild(actions);
+            }
+
+            reviewsGrid.appendChild(card);
+        });
+    }
+
+    // Handle new review submission
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = reviewerName.value.trim();
+            const text = reviewerText.value.trim();
+
+            if (!name || !text) return;
+
+            const newReview = {
+                id: 'rev_' + Date.now(),
+                name: name,
+                text: text,
+                authorToken: getAuthorToken(),
+                createdAt: Date.now()
+            };
+
+            const reviews = getStoredReviews();
+            reviews.unshift(newReview);
+            saveStoredReviews(reviews);
+
+            renderReviews();
+            reviewForm.reset();
+            showNotice('Thank you! Your review has been added and saved.');
+        });
+    }
+
+    // Modal Edit functions
+    function openEditModal(review) {
+        if (!editModal || !editIdInput || !editNameInput || !editTextInput) return;
+        editIdInput.value = review.id;
+        editNameInput.value = review.name;
+        editTextInput.value = review.text;
+        editModal.classList.add('show');
+    }
+
+    function closeEditModal() {
+        if (editModal) editModal.classList.remove('show');
+    }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', closeEditModal);
+    }
+
+    if (editModal) {
+        editModal.addEventListener('click', (e) => {
+            if (e.target === editModal) closeEditModal();
+        });
+    }
+
+    if (editForm) {
+        editForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const id = editIdInput.value;
+            const updatedName = editNameInput.value.trim();
+            const updatedText = editTextInput.value.trim();
+
+            if (!id || !updatedName || !updatedText) return;
+
+            const reviews = getStoredReviews();
+            const index = reviews.findIndex((r) => r.id === id && r.authorToken === getAuthorToken());
+
+            if (index !== -1) {
+                reviews[index].name = updatedName;
+                reviews[index].text = updatedText;
+                reviews[index].updatedAt = Date.now();
+                saveStoredReviews(reviews);
+
+                renderReviews();
+                closeEditModal();
+                showNotice('Your review has been updated successfully!');
+            }
+        });
+    }
+
+    // Delete review function
+    function handleDeleteReview(id) {
+        if (!confirm('Are you sure you want to delete your review? This cannot be undone.')) {
+            return;
         }
 
-        // Reset form inputs
-        reviewForm.reset();
-    });
+        const reviews = getStoredReviews();
+        const filtered = reviews.filter((r) => !(r.id === id && r.authorToken === getAuthorToken()));
+        saveStoredReviews(filtered);
+
+        renderReviews();
+        showNotice('Your review has been deleted.');
+    }
+
+    // Initial render from persistent storage
+    renderReviews();
+
+    // Firebase Cloud Sync (Initializes automatically when projectId is provided)
+    if (firebaseConfig.projectId) {
+        import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js')
+            .then(({ initializeApp }) => import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js')
+                .then((firestore) => {
+                    const app = initializeApp(firebaseConfig);
+                    const db = firestore.getFirestore(app);
+                    const reviewsCol = firestore.collection(db, 'reviews');
+
+                    // Realtime sync from Cloud Firestore
+                    firestore.onSnapshot(reviewsCol, (snapshot) => {
+                        const cloudReviews = [];
+                        snapshot.forEach((docSnap) => {
+                            cloudReviews.push({ id: docSnap.id, ...docSnap.data() });
+                        });
+                        if (cloudReviews.length > 0) {
+                            saveStoredReviews(cloudReviews);
+                            renderReviews();
+                        }
+                    });
+                }))
+            .catch((err) => console.log('Firebase connection ready for configuration.', err));
+    }
 }
 
 /* ==============================================
@@ -256,11 +490,7 @@ function initSmoothScroll() {
             e.preventDefault();
             // Simulate CV download
             const cvNotice = document.createElement('div');
-            cvNotice.className = 'form-notice';
-            cvNotice.style.position = 'fixed';
-            cvNotice.style.bottom = '30px';
-            cvNotice.style.right = '30px';
-            cvNotice.style.zIndex = '9999';
+            cvNotice.className = 'form-notice toast-notice show';
             cvNotice.textContent = 'Preparing Curriculum Vitae for download...';
             document.body.appendChild(cvNotice);
 

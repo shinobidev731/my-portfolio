@@ -4,13 +4,13 @@
 :root {
     --bg-primary: #4f1e0c;
     --bg-secondary: #361508;
-    --bg-card: #361508;
+    --bg-card: #421A0B;
     --text-primary: #ede8d1;
     --text-muted: #d1ceb6;
     --btn-bg: #ede8d1;
     --btn-text: #4f1e0c;
     --btn-hover: #ffffff;
-    --card-border: #ede8d1;
+    --card-border: #9d3914;
     --accent-orange: #d96b27;
 }
 
@@ -70,7 +70,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    ============================ */
 .main-header {
     background-color: rgba(54, 21, 8, 0.95);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(5px);
     width: 100%;
     position: sticky;
     top: 0;
@@ -116,7 +116,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     padding: 90px 20px 80px;
     text-align: center;
     overflow: hidden;
-    background: radial-gradient(circle at center top, #7a3014 0%, #4f1e0c 70%);
+    background: radial-gradient(circle at center top, #943715 10%, #421708 70%);
 }
 
 .code-bg-overlay {
@@ -222,11 +222,11 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .portrait-frame {
-    width: 340px;
+    width: 420px;
     height: 420px;
-    border-radius: 170px 170px 60px 60px;
+    border-radius: 20px;
     overflow: hidden;
-    border: 4px solid var(--text-primary);
+    border: 1px solid #9D3914;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
     background: #361508;
     position: relative;
@@ -300,11 +300,24 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     flex-wrap: wrap;
 }
 
-.skill-card {
-    background-color: var(--bg-card);
+.skill-card-link {
+    display: flex;
     flex: 1 1 180px;
     max-width: 220px;
     min-width: 175px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease;
+}
+
+.skill-card-link:hover {
+    transform: translateY(-6px);
+}
+
+.skill-card {
+    background-color: var(--bg-card);
+    width: 100%;
+    flex: 1;
     min-height: 280px;
     padding: 22px 14px;
     border-radius: 20px;
@@ -317,12 +330,12 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     position: relative;
     overflow: hidden;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, outline-color 0.3s ease;
 }
 
-.skill-card:hover {
-    transform: translateY(-6px);
+.skill-card-link:hover .skill-card, .skill-card:hover {
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
+    outline-color: #ffffff;
 }
 
 .skill-card h3 {
@@ -335,9 +348,23 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     margin: 10px 0;
     flex-wrap: wrap;
+}
+
+.skill-badge-img {
+    width: 38px;
+    height: 38px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: inline-block;
+    vertical-align: middle;
+    transition: transform 0.2s ease;
+}
+
+.skill-badge-img:hover {
+    transform: scale(1.18);
 }
 
 .badge {
@@ -700,7 +727,10 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     padding: 24px;
     border: 1px solid rgba(237, 232, 209, 0.3);
     box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    transition: transform 0.25s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .review-card:hover {
@@ -708,10 +738,62 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     border-color: var(--card-border);
 }
 
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .reviewer-name {
     font-size: 1.2rem;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin-bottom: 0;
+}
+
+.author-pill {
+    background: rgba(237, 232, 209, 0.15);
+    color: var(--text-primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(237, 232, 209, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.review-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(237, 232, 209, 0.12);
+}
+
+.review-action-btn {
+    background: transparent;
+    border: 1px solid rgba(237, 232, 209, 0.4);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.review-action-btn:hover {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-bg);
+    transform: translateY(-1px);
+}
+
+.review-action-btn.delete-btn:hover {
+    background: #a8291b;
+    border-color: #a8291b;
+    color: #ffffff;
 }
 
 .review-text {
@@ -795,15 +877,100 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .form-notice {
-    margin-top: 15px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    background: rgba(115, 157, 27, 0.25);
-    border: 1px solid #739d1b;
-    color: #ede8d1;
+    display: none;
+    margin: 12px auto 20px;
+    padding: 12px 28px;
+    border-radius: 50px;
+    background-color: var(--bg-card);
+    border: 1.5px solid var(--card-border);
+    color: var(--text-primary);
     font-size: 0.95rem;
     font-weight: 600;
-    animation: fadeIn 0.3s ease;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    animation: fadeIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.form-notice.show {
+    display: inline-block;
+}
+
+/* Edit Review Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 10, 4, 0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-card {
+    background: var(--bg-card);
+    border: 2px solid var(--card-border);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.show .modal-card {
+    transform: scale(1);
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.modal-cancel-btn {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--text-muted);
+    padding: 10px 22px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-cancel-btn:hover {
+    background: rgba(237, 232, 209, 0.15);
+    color: #fff;
+}
+
+.offscreen-hidden {
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* ============================
@@ -841,8 +1008,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background-color: rgba(54, 21, 8, 0.8);
-    border: 2px solid rgba(237, 232, 209, 0.3);
+    background-color: #00000021;
+    border: 1px solid #9D3914;
     transition: all 0.25s ease;
     padding: 8px;
 }
@@ -867,7 +1034,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     padding: 40px 20px;
     background: rgba(54, 21, 8, 0.5);
     border-radius: 28px;
-    border: 1px solid rgba(237, 232, 209, 0.25);
+    border: 1px solid #9D3914;
 }
 
 .share-p {
@@ -1108,3 +1275,181 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
         right: -10px;
     }
 }
+
+/* ==============================================
+   10. SUBPAGE LAYOUTS & DEDICATED THEMES
+   ============================================== */
+.subpage-header {
+    background-color: rgba(54, 21, 8, 0.95);
+    backdrop-filter: blur(8px);
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    padding: 16px 20px;
+    text-align: center;
+}
+
+.subpage-back-link {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.subpage-back-link:hover {
+    color: #fff;
+    transform: translateX(-4px);
+}
+
+.subpage-subtitle {
+    margin-bottom: 10px;
+}
+
+.footer-home-link {
+    text-decoration: underline;
+    color: inherit;
+}
+
+.status-banner {
+    margin: 10px auto 30px;
+    max-width: 600px;
+    padding: 14px 20px;
+    background: rgba(217, 107, 39, 0.2);
+    border: 2px solid var(--accent-orange);
+    border-radius: 16px;
+    text-align: center;
+}
+
+.status-banner-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #ff9a52;
+    margin: 0;
+}
+
+.toast-notice {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+}
+
+/* Photography Artwork Themes */
+.theme-photo-1 { background: #1e1e1e; }
+.theme-photo-1 .artwork-landscape { background: linear-gradient(180deg, #d38342 0%, #442111 100%); }
+.theme-photo-1 .back-hill { background: #2a140b; }
+.theme-photo-1 .front-hill { background: #140703; }
+
+.theme-photo-2 { background: #201a15; }
+.theme-photo-2 .artwork-landscape { background: linear-gradient(180deg, #e5a968 0%, #5c321e 100%); }
+.theme-photo-2 .back-hill { background: #3d2113; }
+.theme-photo-2 .front-hill { background: #241109; }
+
+.theme-photo-3 { background: #191410; }
+.theme-photo-3 .artwork-landscape { background: linear-gradient(180deg, #7da5b8 0%, #2f4858 100%); }
+.theme-photo-3 .back-hill { background: #1f303a; }
+.theme-photo-3 .front-hill { background: #111d24; }
+
+.theme-photo-4 { background: #221c18; }
+.theme-photo-4 .artwork-landscape { background: linear-gradient(180deg, #d88965 0%, #462013 100%); }
+.theme-photo-4 .back-hill { background: #2c120a; }
+.theme-photo-4 .front-hill { background: #190904; }
+
+.cert-photo-1 { background: linear-gradient(180deg, #c49a6c 0%, #472614 100%); }
+.cert-photo-1 .back-hill { background: #2d180b; }
+.cert-photo-1 .front-hill { background: #180c05; }
+
+.cert-photo-2 { background: linear-gradient(180deg, #6c94c4 0%, #173256 100%); }
+.cert-photo-2 .back-hill { background: #0d213c; }
+.cert-photo-2 .front-hill { background: #061120; }
+
+/* Frontend Artwork Themes */
+.theme-front-1 { background: #111e2e; }
+.theme-front-1 .artwork-landscape { background: linear-gradient(180deg, #38bdf8 0%, #0369a1 100%); }
+.theme-front-1 .back-hill { background: #0c4a6e; }
+.theme-front-1 .front-hill { background: #082f49; }
+
+.theme-front-2 { background: #141e28; }
+.theme-front-2 .artwork-landscape { background: linear-gradient(180deg, #61dafb 0%, #1e3a8a 100%); }
+.theme-front-2 .back-hill { background: #172554; }
+.theme-front-2 .front-hill { background: #0f172a; }
+
+.theme-front-3 { background: #1f1a2e; }
+.theme-front-3 .artwork-landscape { background: linear-gradient(180deg, #a855f7 0%, #581c87 100%); }
+.theme-front-3 .back-hill { background: #3b0764; }
+.theme-front-3 .front-hill { background: #240046; }
+
+.theme-front-4 { background: #13241b; }
+.theme-front-4 .artwork-landscape { background: linear-gradient(180deg, #34d399 0%, #065f46 100%); }
+.theme-front-4 .back-hill { background: #064e3b; }
+.theme-front-4 .front-hill { background: #022c22; }
+
+.cert-front-1 { background: linear-gradient(180deg, #38bdf8 0%, #075985 100%); }
+.cert-front-1 .back-hill { background: #0369a1; }
+.cert-front-1 .front-hill { background: #0c4a6e; }
+
+.cert-front-2 { background: linear-gradient(180deg, #fbbf24 0%, #b45309 100%); }
+.cert-front-2 .back-hill { background: #92400e; }
+.cert-front-2 .front-hill { background: #78350f; }
+
+/* Software Engineering Themes */
+.theme-soft-1 { background: #191c2b; }
+.theme-soft-1 .artwork-landscape { background: linear-gradient(180deg, #6366f1 0%, #312e81 100%); }
+.theme-soft-1 .back-hill { background: #1e1b4b; }
+.theme-soft-1 .front-hill { background: #0f172a; }
+
+.theme-soft-2 { background: #162426; }
+.theme-soft-2 .artwork-landscape { background: linear-gradient(180deg, #14b8a6 0%, #134e4a 100%); }
+.theme-soft-2 .back-hill { background: #042f2e; }
+.theme-soft-2 .front-hill { background: #021f1e; }
+
+.theme-soft-3 { background: #2b1f1a; }
+.theme-soft-3 .artwork-landscape { background: linear-gradient(180deg, #f97316 0%, #7c2d12 100%); }
+.theme-soft-3 .back-hill { background: #431407; }
+.theme-soft-3 .front-hill { background: #280a03; }
+
+.theme-soft-4 { background: #251b2c; }
+.theme-soft-4 .artwork-landscape { background: linear-gradient(180deg, #d946ef 0%, #701a75 100%); }
+.theme-soft-4 .back-hill { background: #4a044e; }
+.theme-soft-4 .front-hill { background: #2e0231; }
+
+.cert-soft-1 { background: linear-gradient(180deg, #818cf8 0%, #3730a3 100%); }
+.cert-soft-1 .back-hill { background: #1e1b4b; }
+.cert-soft-1 .front-hill { background: #0f172a; }
+
+.cert-soft-2 { background: linear-gradient(180deg, #2dd4bf 0%, #115e59 100%); }
+.cert-soft-2 .back-hill { background: #042f2e; }
+.cert-soft-2 .front-hill { background: #021f1e; }
+
+/* Cybersecurity Themes */
+.theme-cyber-1 { background: #1e1315; }
+.theme-cyber-1 .artwork-landscape { background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 100%); }
+.theme-cyber-1 .back-hill { background: #450a0a; }
+.theme-cyber-1 .front-hill { background: #2b0404; }
+
+.theme-cyber-2 { background: #111a19; }
+.theme-cyber-2 .artwork-landscape { background: linear-gradient(180deg, #10b981 0%, #064e3b 100%); }
+.theme-cyber-2 .back-hill { background: #022c22; }
+.theme-cyber-2 .front-hill { background: #011813; }
+
+.theme-cyber-3 { background: #151821; }
+.theme-cyber-3 .artwork-landscape { background: linear-gradient(180deg, #0ea5e9 0%, #0c4a6e 100%); }
+.theme-cyber-3 .back-hill { background: #082f49; }
+.theme-cyber-3 .front-hill { background: #031826; }
+
+.theme-cyber-4 { background: #1d1814; }
+.theme-cyber-4 .artwork-landscape { background: linear-gradient(180deg, #f59e0b 0%, #78350f 100%); }
+.theme-cyber-4 .back-hill { background: #451a03; }
+.theme-cyber-4 .front-hill { background: #260e02; }
+
+.cert-cyber-1 { background: linear-gradient(180deg, #f87171 0%, #991b1b 100%); }
+.cert-cyber-1 .back-hill { background: #7f1d1d; }
+.cert-cyber-1 .front-hill { background: #450a0a; }
+
+.cert-cyber-2 { background: linear-gradient(180deg, #34d399 0%, #065f46 100%); }
+.cert-cyber-2 .back-hill { background: #064e3b; }
+.cert-cyber-2 .front-hill { background: #022c22; }
