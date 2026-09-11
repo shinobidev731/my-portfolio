@@ -193,48 +193,13 @@ function initReferralFeature() {
 
 /* ==============================================
    4. CLIENT REVIEWS & PERSISTENT STORAGE
-   (Cloud Firestore ready + LocalStorage persistent fallback)
+   (Node.js REST API + LocalStorage fallback)
    ============================================== */
-
-// Firebase Configuration: paste your Firebase project credentials here to sync globally across devices
-const firebaseConfig = {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
-};
 
 const STORAGE_KEY = 'portfolio_reviews_data';
 const AUTHOR_TOKEN_KEY = 'portfolio_author_token';
 
-// Default seed reviews matching initial portfolio design
-const DEFAULT_SEED_REVIEWS = [
-    {
-        id: 'seed_1',
-        name: 'Adeyemi Fashakin',
-        text: 'reviews reviews reviews reviews v reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews reviews',
-        authorToken: 'seed_author_1',
-        createdAt: 1700000000000
-    },
-    {
-        id: 'seed_2',
-        name: 'Samuel Oladipo',
-        text: 'Exceptional creative design and photography work. Delivered ahead of schedule with remarkable visual flair!',
-        authorToken: 'seed_author_2',
-        createdAt: 1700000001000
-    },
-    {
-        id: 'seed_3',
-        name: 'Tolulope Adeleke',
-        text: 'The website frontend was responsive, fluid, and translated our exact design vision into clean code. Highly recommended!',
-        authorToken: 'seed_author_3',
-        createdAt: 1700000002000
-    }
-];
-
-// Retrieve or generate unique author token for this browser
+// Retrieve or generate unique author token for this client
 function getAuthorToken() {
     let token = localStorage.getItem(AUTHOR_TOKEN_KEY);
     if (!token) {
@@ -274,37 +239,41 @@ function initReviewForm() {
         }, 4500);
     }
 
-    // Load stored reviews from localStorage
-    function getStoredReviews() {
+    // Local storage helpers (fallback & sync)
+    function getLocalReviews() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SEED_REVIEWS));
-                return DEFAULT_SEED_REVIEWS;
-            }
-            return JSON.parse(raw);
+            return raw ? JSON.parse(raw) : [];
         } catch (e) {
-            console.error('Failed to parse stored reviews:', e);
-            return DEFAULT_SEED_REVIEWS;
+            console.error('Failed to parse local reviews:', e);
+            return [];
         }
     }
 
-    // Save reviews array to localStorage
-    function saveStoredReviews(reviews) {
+    function saveLocalReviews(reviews) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
         } catch (e) {
-            console.error('Failed to save reviews to storage:', e);
+            console.error('Failed to save local reviews:', e);
         }
     }
 
-    // Render all reviews to the grid
-    function renderReviews() {
-        const reviews = getStoredReviews();
+    // Render review cards or empty state
+    function renderReviewsList(reviews) {
         reviewsGrid.innerHTML = '';
 
+        if (!reviews || reviews.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'no-reviews-msg';
+            emptyMsg.textContent = 'No reviews yet';
+            reviewsGrid.appendChild(emptyMsg);
+            return;
+        }
+
+        const currentAuthorToken = getAuthorToken();
+
         reviews.forEach((review) => {
-            const isAuthor = review.authorToken === getAuthorToken();
+            const isAuthor = review.authorToken === currentAuthorToken;
 
             const card = document.createElement('div');
             card.className = 'review-card';
@@ -360,9 +329,29 @@ function initReviewForm() {
         });
     }
 
+    // Fetch reviews from server API (with local storage fallback)
+    async function loadReviews() {
+        try {
+            const res = await fetch('/api/reviews');
+            if (res.ok) {
+                const data = await res.json();
+                const serverReviews = data.reviews || [];
+                saveLocalReviews(serverReviews);
+                renderReviewsList(serverReviews);
+                return;
+            }
+        } catch (err) {
+            console.log('Server not reachable, reading from local storage:', err);
+        }
+
+        // Fallback to local storage if API is not running or network error
+        const localReviews = getLocalReviews();
+        renderReviewsList(localReviews);
+    }
+
     // Handle new review submission
     if (reviewForm) {
-        reviewForm.addEventListener('submit', (e) => {
+        reviewForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const name = reviewerName.value.trim();
@@ -370,21 +359,47 @@ function initReviewForm() {
 
             if (!name || !text) return;
 
+            const authorToken = getAuthorToken();
+
+            try {
+                const res = await fetch('/api/reviews', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, text, authorToken })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.authorToken) {
+                        localStorage.setItem(AUTHOR_TOKEN_KEY, data.authorToken);
+                    }
+                    reviewForm.reset();
+                    showNotice('Thank you for the review!');
+                    await loadReviews();
+                    return;
+                }
+            } catch (err) {
+                console.log('Server unreachable on submit, using local fallback:', err);
+            }
+
+            // Local fallback
             const newReview = {
                 id: 'rev_' + Date.now(),
                 name: name,
                 text: text,
-                authorToken: getAuthorToken(),
+                authorToken: authorToken,
                 createdAt: Date.now()
             };
 
-            const reviews = getStoredReviews();
-            reviews.unshift(newReview);
-            saveStoredReviews(reviews);
+            const localReviews = getLocalReviews();
+            localReviews.unshift(newReview);
+            saveLocalReviews(localReviews);
+            renderReviewsList(localReviews);
 
-            renderReviews();
             reviewForm.reset();
-            showNotice('Thank you! Your review has been added and saved.');
+            showNotice('Thank you for the review!');
         });
     }
 
@@ -412,7 +427,7 @@ function initReviewForm() {
     }
 
     if (editForm) {
-        editForm.addEventListener('submit', (e) => {
+        editForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const id = editIdInput.value;
@@ -421,16 +436,43 @@ function initReviewForm() {
 
             if (!id || !updatedName || !updatedText) return;
 
-            const reviews = getStoredReviews();
-            const index = reviews.findIndex((r) => r.id === id && r.authorToken === getAuthorToken());
+            const authorToken = getAuthorToken();
+
+            try {
+                const res = await fetch(`/api/reviews/${encodeURIComponent(id)}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-author-token': authorToken
+                    },
+                    body: JSON.stringify({ name: updatedName, text: updatedText })
+                });
+
+                if (res.ok) {
+                    closeEditModal();
+                    showNotice('Your review has been updated successfully!');
+                    await loadReviews();
+                    return;
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    alert(errData.error || 'Unable to update review.');
+                    return;
+                }
+            } catch (err) {
+                console.log('Server unreachable on update, fallback to local storage:', err);
+            }
+
+            // Local fallback
+            const localReviews = getLocalReviews();
+            const index = localReviews.findIndex((r) => r.id === id && r.authorToken === authorToken);
 
             if (index !== -1) {
-                reviews[index].name = updatedName;
-                reviews[index].text = updatedText;
-                reviews[index].updatedAt = Date.now();
-                saveStoredReviews(reviews);
+                localReviews[index].name = updatedName;
+                localReviews[index].text = updatedText;
+                localReviews[index].updatedAt = Date.now();
+                saveLocalReviews(localReviews);
 
-                renderReviews();
+                renderReviewsList(localReviews);
                 closeEditModal();
                 showNotice('Your review has been updated successfully!');
             }
@@ -438,45 +480,45 @@ function initReviewForm() {
     }
 
     // Delete review function
-    function handleDeleteReview(id) {
+    async function handleDeleteReview(id) {
         if (!confirm('Are you sure you want to delete your review? This cannot be undone.')) {
             return;
         }
 
-        const reviews = getStoredReviews();
-        const filtered = reviews.filter((r) => !(r.id === id && r.authorToken === getAuthorToken()));
-        saveStoredReviews(filtered);
+        const authorToken = getAuthorToken();
 
-        renderReviews();
+        try {
+            const res = await fetch(`/api/reviews/${encodeURIComponent(id)}`, {
+                method: 'DELETE',
+                headers: {
+                    'x-author-token': authorToken
+                }
+            });
+
+            if (res.ok) {
+                showNotice('Your review has been deleted.');
+                await loadReviews();
+                return;
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                alert(errData.error || 'Unable to delete review.');
+                return;
+            }
+        } catch (err) {
+            console.log('Server unreachable on delete, fallback to local storage:', err);
+        }
+
+        // Local fallback
+        const localReviews = getLocalReviews();
+        const filtered = localReviews.filter((r) => !(r.id === id && r.authorToken === authorToken));
+        saveLocalReviews(filtered);
+
+        renderReviewsList(filtered);
         showNotice('Your review has been deleted.');
     }
 
-    // Initial render from persistent storage
-    renderReviews();
-
-    // Firebase Cloud Sync (Initializes automatically when projectId is provided)
-    if (firebaseConfig.projectId) {
-        import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js')
-            .then(({ initializeApp }) => import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js')
-                .then((firestore) => {
-                    const app = initializeApp(firebaseConfig);
-                    const db = firestore.getFirestore(app);
-                    const reviewsCol = firestore.collection(db, 'reviews');
-
-                    // Realtime sync from Cloud Firestore
-                    firestore.onSnapshot(reviewsCol, (snapshot) => {
-                        const cloudReviews = [];
-                        snapshot.forEach((docSnap) => {
-                            cloudReviews.push({ id: docSnap.id, ...docSnap.data() });
-                        });
-                        if (cloudReviews.length > 0) {
-                            saveStoredReviews(cloudReviews);
-                            renderReviews();
-                        }
-                    });
-                }))
-            .catch((err) => console.log('Firebase connection ready for configuration.', err));
-    }
+    // Load initial reviews
+    loadReviews();
 }
 
 /* ==============================================

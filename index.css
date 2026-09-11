@@ -721,6 +721,19 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     margin: 40px 0 60px;
 }
 
+.no-reviews-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 38px 24px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border: 1px dashed rgba(237, 232, 209, 0.35);
+    border-radius: 16px;
+    letter-spacing: 0.3px;
+}
+
 .review-card {
     background: var(--bg-card);
     border-radius: 16px;
