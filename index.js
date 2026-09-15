@@ -22,6 +22,8 @@ function initCarousel() {
     if (!track || slides.length === 0) return;
 
     let currentIndex = 1; // Default active center card (Logo Design for GOD'S OWN CRECHE)
+    const activeIndex = slides.findIndex(slide => slide.classList.contains('active'));
+    let currentIndex = activeIndex !== -1 ? activeIndex : 1;
 
     function updateCarousel() {
         slides.forEach((slide, index) => {

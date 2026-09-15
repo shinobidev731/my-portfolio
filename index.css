@@ -489,7 +489,9 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     display: flex;
     align-items: center;
     justify-content: center;
+    justify-content: flex-start;
     gap: 30px;
+    width: max-content;
     transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -524,6 +526,33 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     margin-bottom: 16px;
     position: relative;
     background: #c3daf2;
+    background: #240d04;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-artwork.white-bg {
+    background: #ffffff;
+}
+
+.project-artwork-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-radius: 18px;
+    transition: transform 0.4s ease;
+}
+
+.project-artwork-img.contain-fit {
+    object-fit: contain;
+    padding: 10px;
+}
+
+.project-card:hover .project-artwork-img {
+    transform: scale(1.04);
 }
 
 .artwork-landscape {
@@ -915,6 +944,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     background: rgba(30, 10, 4, 0.85);
     backdrop-filter: blur(6px);
     display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 10000;
@@ -925,6 +955,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .modal-overlay.show {
+    display: flex;
     opacity: 1;
     pointer-events: auto;
 }
