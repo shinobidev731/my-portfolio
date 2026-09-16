@@ -22,7 +22,8 @@ function initCarousel() {
 
     if (!track || slides.length === 0) return;
 
-    let currentIndex = 1; // Default active center card (Logo Design for GOD'S OWN CRECHE)
+    let currentIndex = 1; // Default active center card
+    const trackContainer = track.parentElement;
 
     function updateCarousel() {
         slides.forEach((slide, index) => {
@@ -33,7 +34,6 @@ function initCarousel() {
         });
 
         // Calculate offset to center the active slide
-        const trackContainer = track.parentElement;
         const containerWidth = trackContainer.offsetWidth;
         const activeSlide = slides[currentIndex];
         
@@ -74,6 +74,31 @@ function initCarousel() {
 
     // Handle Window Resize
     window.addEventListener('resize', updateCarousel);
+
+    // Touch / Swipe support
+    let touchStartX = 0;
+    let touchEndX   = 0;
+    const SWIPE_THRESHOLD = 50; // px minimum swipe distance
+
+    trackContainer.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].clientX;
+    }, { passive: true });
+
+    trackContainer.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].clientX;
+        const delta = touchStartX - touchEndX;
+
+        if (Math.abs(delta) >= SWIPE_THRESHOLD) {
+            if (delta > 0) {
+                // Swiped left → next
+                currentIndex = (currentIndex + 1) % slides.length;
+            } else {
+                // Swiped right → prev
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+            }
+            updateCarousel();
+        }
+    }, { passive: true });
 
     // Initial positioning
     setTimeout(updateCarousel, 100);
@@ -130,66 +155,109 @@ function initClipboardCopy() {
 }
 
 /* ==============================================
-   3. REFERRAL FLYER FEEDBACK ("Thanks for the referral")
+   3. SHARE FLYER FEATURE
    ============================================== */
 function initReferralFeature() {
-    const downloadFlyerBtn = document.getElementById('downloadFlyerBtn');
-    const flyerCard = document.getElementById('flyerCard');
-    const referralOverlay = document.getElementById('referralOverlay');
+    const shareBtn      = document.getElementById('shareBtn');
+    const sharePopover  = document.getElementById('sharePopover');
+    const shareCopyLink = document.getElementById('shareCopyLink');
 
-    if (!referralOverlay) return;
+    if (!shareBtn) return;
 
-    let overlayTimeout = null;
+    // Caption / share text
+    const shareText = `🎨 Check out Ikeoluwa Makinwa's portfolio — Creative Graphic Designer, Photographer & Frontend Developer.\n\n🔗 ${window.location.href}`;
+    const shareUrl  = window.location.href;
 
-    function triggerReferralNotice() {
-        referralOverlay.classList.add('show');
+    // Build platform URLs
+    function buildLinks() {
+        const encoded     = encodeURIComponent(shareText);
+        const encodedUrl  = encodeURIComponent(shareUrl);
 
-        // Trigger flyer download simulation
-        downloadMockFlyer();
+        const wa = document.getElementById('shareWhatsApp');
+        const tw = document.getElementById('shareTwitter');
+        const fb = document.getElementById('shareFacebook');
+        const tg = document.getElementById('shareTelegram');
+        const li = document.getElementById('shareLinkedIn');
 
-        if (overlayTimeout) clearTimeout(overlayTimeout);
-
-        overlayTimeout = setTimeout(() => {
-            referralOverlay.classList.remove('show');
-        }, 3200);
+        if (wa) wa.href = `https://wa.me/?text=${encoded}`;
+        if (tw) tw.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent('🎨 Check out Ikeoluwa Makinwa\'s portfolio!')}&url=${encodedUrl}`;
+        if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        if (tg) tg.href = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent('Check out this portfolio!')}`;
+        if (li) li.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
     }
+    buildLinks();
 
-    if (downloadFlyerBtn) {
-        downloadFlyerBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            triggerReferralNotice();
+    // Copy link handler
+    if (shareCopyLink) {
+        shareCopyLink.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = shareUrl;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            shareCopyLink.textContent = '✅ Copied!';
+            shareCopyLink.classList.add('copied');
+            setTimeout(() => {
+                shareCopyLink.textContent = '📋 Copy link';
+                shareCopyLink.classList.remove('copied');
+            }, 2500);
         });
     }
 
-    if (flyerCard) {
-        flyerCard.addEventListener('click', () => {
-            triggerReferralNotice();
-        });
-    }
+    // Main share button
+    shareBtn.addEventListener('click', async () => {
+        // Try Web Share API with image file (works on mobile)
+        if (navigator.canShare) {
+            try {
+                const response = await fetch('./photos/social-media-design.png');
+                const blob     = await response.blob();
+                const file     = new File([blob], 'social-media-design.png', { type: blob.type });
 
-    function downloadMockFlyer() {
-        // Generate and download a simple branded flyer SVG
-        const svgContent = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
-                <rect width="100%" height="100%" fill="#4f1e0c"/>
-                <circle cx="400" cy="300" r="140" fill="#361508" stroke="#ede8d1" stroke-width="6"/>
-                <text x="400" y="325" fill="#ede8d1" font-size="70" font-family="sans-serif" font-weight="bold" text-anchor="middle">IM</text>
-                <text x="400" y="520" fill="#ede8d1" font-size="42" font-family="sans-serif" font-weight="bold" text-anchor="middle">IKEOLUWA MAKINWA</text>
-                <text x="400" y="580" fill="#d1ceb6" font-size="26" font-family="sans-serif" text-anchor="middle">Graphic Design &bull; Photography &bull; Frontend Development</text>
-                <text x="400" y="640" fill="#d1ceb6" font-size="22" font-family="sans-serif" text-anchor="middle">WhatsApp: +234 810 658 2764</text>
-            </svg>
-        `.trim();
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'Ikeoluwa Makinwa — Portfolio',
+                        text:  shareText,
+                        files: [file],
+                    });
+                    return;
+                }
+            } catch (err) {
+                // File share failed — fall through to URL share or popover
+            }
+        }
 
-        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Ikeoluwa_Makinwa_Promo_Flyer.svg';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
+        // Try Web Share API with just URL (most mobile browsers)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Ikeoluwa Makinwa — Portfolio',
+                    text:  shareText,
+                    url:   shareUrl,
+                });
+                return;
+            } catch (err) {
+                // User cancelled or not supported — fall through to popover
+                if (err.name === 'AbortError') return;
+            }
+        }
+
+        // Desktop fallback: toggle popover
+        const isOpen = sharePopover.classList.toggle('open');
+        shareBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    // Close popover on outside click
+    document.addEventListener('click', (e) => {
+        if (sharePopover && !shareBtn.contains(e.target) && !sharePopover.contains(e.target)) {
+            sharePopover.classList.remove('open');
+            shareBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
 }
 
 /* ==============================================
@@ -526,20 +594,18 @@ function initReviewForm() {
    5. CV DOWNLOAD & SMOOTH SCROLLING
    ============================================== */
 function initSmoothScroll() {
-    // CV Download button feedback
     const cvBtn = document.getElementById('cv-btn');
     if (cvBtn) {
         cvBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            // Simulate CV download
-            const cvNotice = document.createElement('div');
-            cvNotice.className = 'form-notice toast-notice show';
-            cvNotice.textContent = 'Preparing Curriculum Vitae for download...';
-            document.body.appendChild(cvNotice);
 
-            setTimeout(() => {
-                cvNotice.remove();
-            }, 3000);
+            // Trigger real PDF download
+            const link = document.createElement('a');
+            link.href = './Ikeoluwa_Ayanfe_Makinwa_Resume.pdf';
+            link.download = 'Ikeoluwa_Ayanfe_Makinwa_Resume.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         });
     }
 }

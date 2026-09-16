@@ -1039,152 +1039,111 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     margin-bottom: 35px;
 }
 
-.referral-flex {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 50px;
-    text-align: left;
-}
-
-.flyer-col {
-    flex: 0 0 240px;
+/* New share hub layout */
+.share-hub {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 18px;
+    gap: 28px;
 }
 
-.flyer-card {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    background: #ede8d1;
-    border-radius: 18px;
+.flyer-img-wrap {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
-    cursor: pointer;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(237, 232, 209, 0.15);
 }
 
-.flyer-preview {
+.flyer-img {
     width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #ede8d1 0%, #d8d0b5 100%);
-    padding: 16px;
+    height: auto;
+    display: block;
 }
 
-.flyer-graphic {
-    text-align: center;
-}
-
-.flyer-logo-badge {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #4f1e0c;
-    color: #ede8d1;
-    font-weight: 900;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 10px;
-}
-
-.flyer-text-main {
-    font-weight: 800;
-    color: #361508;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
-}
-
-.flyer-text-sub {
-    font-size: 0.75rem;
-    color: #7a3014;
-    font-weight: 600;
-}
-
-.sketch-svg {
-    width: 100%;
-    height: 100%;
-}
-
-/* Referral Overlay Popup matching Mockup */
-.referral-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(30, 10, 4, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.35s ease;
-}
-
-.referral-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.referral-overlay-card {
-    background: #250d05;
-    padding: 18px 20px;
-    border-radius: 14px;
-    border: 1px solid var(--text-primary);
-    text-align: center;
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
-}
-
-.referral-overlay.show .referral-overlay-card {
-    transform: scale(1);
-}
-
-.referral-overlay-card p {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #ede8d1;
-    margin: 0;
-}
-
-.download-flyer-btn {
-    font-size: 0.95rem;
-    padding: 10px 24px;
-    width: 100%;
-}
-
-.caption-col {
-    flex: 1;
+/* Share button + popover wrapper */
+.share-btn-wrap {
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
+    align-items: center;
 }
 
-.caption-title {
-    font-size: 1.2rem;
+.share-main-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 40px;
+    font-size: 1.1rem;
     font-weight: 700;
+    letter-spacing: 0.5px;
+    border-radius: 50px;
 }
 
-.caption-text {
-    font-size: 0.92rem;
-    line-height: 1.65;
-    color: var(--text-muted);
+.share-icon-svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
-.copy-btn {
-    padding: 12px 30px;
+/* Fallback popover */
+.share-popover {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #250d05;
+    border: 1px solid rgba(237, 232, 209, 0.3);
+    border-radius: 18px;
+    padding: 10px;
+    min-width: 200px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    z-index: 200;
+    animation: fadeIn 0.2s ease;
+}
+
+.share-popover.open {
+    display: flex;
+}
+
+.share-popover-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-radius: 10px;
     font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    transition: background 0.18s;
+    text-align: left;
+    box-shadow: none;
 }
 
-.copy-btn.copied {
-    background-color: #278838;
-    color: #fff;
-    box-shadow: 0 0 12px rgba(39, 136, 56, 0.5);
+.share-popover-link:hover {
+    background: rgba(237, 232, 209, 0.1);
+    transform: none;
+    box-shadow: none;
+}
+
+.share-popover-link img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.share-copy-link.copied {
+    color: #4ade80;
 }
 
 /* ============================
@@ -1227,18 +1186,6 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 
     .reviews-grid {
         grid-template-columns: 1fr;
-    }
-
-    .referral-flex {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 30px;
-    }
-
-    .caption-col {
-        align-items: center;
-        text-align: center;
     }
 }
 
