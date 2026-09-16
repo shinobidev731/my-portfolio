@@ -76,25 +76,38 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     top: 0;
     z-index: 1000;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    /* Needed so the mobile dropdown anchors to this element */
+    isolation: isolate;
 }
 
 .nav-bar {
     max-width: 1100px;
     margin: 0 auto;
-    text-align: center;
-    padding: 18px 20px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
 }
 
-.nav-bar ul {
+.header-logo {
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.nav-links {
     list-style: none;
     display: flex;
-    justify-content: center;
-    gap: 48px;
+    align-items: center;
+    gap: 40px;
 }
 
 .nav-bar li a {
     font-weight: 600;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     letter-spacing: 0.5px;
     padding: 6px 12px;
     border-radius: 8px;
@@ -107,6 +120,42 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     color: #fff;
     text-shadow: 0 0 10px rgba(237, 232, 209, 0.6);
 }
+
+/* Hamburger button — hidden on desktop */
+.hamburger-btn {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s;
+    box-shadow: none;
+}
+
+.hamburger-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: none;
+    box-shadow: none;
+}
+
+.hamburger-btn:active {
+    transform: none;
+}
+
+.hamburger-line {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background-color: var(--text-primary);
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
 
 /* ============================
    2. HERO SECTION
@@ -489,9 +538,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     display: flex;
     align-items: center;
     justify-content: center;
-    justify-content: flex-start;
     gap: 30px;
-    width: max-content;
     transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -500,7 +547,13 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     opacity: 0.45;
     transform: scale(0.85);
     transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 100%;
     cursor: pointer;
+}
+
+.graphics-flyers{
+    max-width: 240px;
+    max-height: 240px;
 }
 
 .carousel-slide.active {
@@ -518,108 +571,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     text-align: center;
 }
 
-.project-artwork {
-    width: 100%;
-    height: 240px;
-    border-radius: 18px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    position: relative;
-    background: #c3daf2;
-    background: #240d04;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-.project-artwork.white-bg {
-    background: #ffffff;
-}
-
-.project-artwork-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-    border-radius: 18px;
-    transition: transform 0.4s ease;
-}
-
-.project-artwork-img.contain-fit {
-    object-fit: contain;
-    padding: 10px;
-}
-
-.project-card:hover .project-artwork-img {
-    transform: scale(1.04);
-}
-
-.artwork-landscape {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background: linear-gradient(180deg, #bfe4fa 0%, #d8ecfa 60%, #a2c64e 61%);
-    overflow: hidden;
-}
-
-.art-cloud {
-    width: 70px;
-    height: 30px;
-    background: #ffffff;
-    border-radius: 20px;
-    position: absolute;
-    top: 35px;
-    left: 50%;
-    transform: translateX(-50%);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-}
-
-.art-cloud::before, .art-cloud::after {
-    content: '';
-    position: absolute;
-    background: #ffffff;
-    border-radius: 50%;
-}
-
-.art-cloud::before {
-    width: 32px;
-    height: 32px;
-    top: -14px;
-    left: 12px;
-}
-
-.art-cloud::after {
-    width: 24px;
-    height: 24px;
-    top: -10px;
-    left: 32px;
-}
-
-.art-cloud.small {
-    transform: scale(0.7);
-    top: 20px;
-}
-
-.art-hill {
-    position: absolute;
-    bottom: -20px;
-    border-radius: 50%;
-}
-
-.back-hill {
-    width: 350px;
-    height: 180px;
-    background: #93b938;
-    left: -40px;
-}
-
-.front-hill {
-    width: 320px;
-    height: 150px;
-    background: #739d1b;
-    right: -50px;
-}
 
 .project-title {
     font-size: 0.95rem;
@@ -1291,14 +1243,52 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 @media (max-width: 600px) {
-    .nav-bar ul {
-        gap: 20px;
+    /* --- NAVBAR: mobile collapse --- */
+    .hamburger-btn {
+        display: flex;
+    }
+
+    .nav-bar {
+        position: static;
+    }
+
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background-color: rgba(54, 21, 8, 0.99);
+        padding: 12px 0 18px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        z-index: 998;
+    }
+
+    .nav-links.nav-open {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
     }
 
     .nav-bar li a {
-        font-size: 0.95rem;
+        display: block;
+        width: 100%;
+        padding: 14px 28px;
+        font-size: 1.05rem;
+        border-radius: 0;
     }
 
+    .nav-bar li a:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* --- HERO --- */
     .hero-greeting {
         font-size: 2.8rem;
     }
@@ -1307,6 +1297,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
         font-size: 1.6rem;
     }
 
+    /* --- CAROUSEL --- */
     .carousel-slide {
         flex: 0 0 220px;
     }
@@ -1319,6 +1310,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
         right: -10px;
     }
 }
+
 
 /* ==============================================
    10. SUBPAGE LAYOUTS & DEDICATED THEMES

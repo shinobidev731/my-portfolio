@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initReferralFeature();
     initReviewForm();
     initSmoothScroll();
+    initMobileNav();
 });
 
 /* ==============================================
@@ -22,8 +23,6 @@ function initCarousel() {
     if (!track || slides.length === 0) return;
 
     let currentIndex = 1; // Default active center card (Logo Design for GOD'S OWN CRECHE)
-    const activeIndex = slides.findIndex(slide => slide.classList.contains('active'));
-    let currentIndex = activeIndex !== -1 ? activeIndex : 1;
 
     function updateCarousel() {
         slides.forEach((slide, index) => {
@@ -543,4 +542,36 @@ function initSmoothScroll() {
             }, 3000);
         });
     }
+}
+
+/* ==============================================
+   6. MOBILE NAVIGATION (HAMBURGER MENU)
+   ============================================== */
+function initMobileNav() {
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    if (!hamburgerBtn || !navLinks) return;
+
+    // Toggle the nav-open class on button click
+    hamburgerBtn.addEventListener('click', () => {
+        const isOpen = navLinks.classList.toggle('nav-open');
+        hamburgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    // Close the menu when a nav link is clicked (smooth UX on mobile)
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            navLinks.classList.remove('nav-open');
+            hamburgerBtn.setAttribute('aria-expanded', 'false');
+        });
+    });
+
+    // Close the menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!hamburgerBtn.contains(e.target) && !navLinks.contains(e.target)) {
+            navLinks.classList.remove('nav-open');
+            hamburgerBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
 }
