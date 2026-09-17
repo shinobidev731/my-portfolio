@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initSmoothScroll();
     initMobileNav();
     initBackToTop();
+    initScrollSpy();
+    initScrollReveal();
 });
 
 /* ==============================================
@@ -71,6 +73,19 @@ function initCarousel() {
                 updateCarousel();
             }
         });
+    });
+
+    // Keyboard Arrow navigation (Left / Right keys)
+    document.addEventListener('keydown', (e) => {
+        const isModalOpen = document.querySelector('.modal-overlay.show');
+        if (isModalOpen) return;
+        if (e.key === 'ArrowLeft') {
+            currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+            updateCarousel();
+        } else if (e.key === 'ArrowRight') {
+            currentIndex = (currentIndex + 1) % slides.length;
+            updateCarousel();
+        }
     });
 
     // Handle Window Resize
@@ -166,7 +181,7 @@ function initReferralFeature() {
     if (!shareBtn) return;
 
     // Caption / share text
-    const shareText = `🎨 Check out Ikeoluwa Makinwa's portfolio — Creative Graphic Designer, Photographer & Frontend Developer.\n\n🔗 ${window.location.href}`;
+    const shareText = `🎨 Check out Ikeoluwa Makinwa's portfolio — Creative Graphic Designer & Frontend Developer.\n\n🔗 ${window.location.href}`;
     const shareUrl  = window.location.href;
 
     // Build platform URLs
@@ -269,6 +284,28 @@ function initReferralFeature() {
 const STORAGE_KEY = 'portfolio_reviews_data';
 const AUTHOR_TOKEN_KEY = 'portfolio_author_token';
 
+// API Base URL helper (supports localhost:3000, Live Server, and relative)
+function getApiUrl(endpoint) {
+    if (window.location.protocol === 'http:' && (window.location.port === '3000' || window.location.port === '')) {
+        return endpoint;
+    }
+    return 'http://localhost:3000' + endpoint;
+}
+
+// Resilient fetch with fast timeout to avoid UI blocking
+async function fetchWithTimeout(url, options = {}, timeoutMs = 2000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+    } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+    }
+}
+
 // Retrieve or generate unique author token for this client
 function getAuthorToken() {
     let token = localStorage.getItem(AUTHOR_TOKEN_KEY);
@@ -293,6 +330,12 @@ function initReviewForm() {
     const editNameInput = document.getElementById('editReviewName');
     const editTextInput = document.getElementById('editReviewText');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+    // Delete modal elements
+    const deleteModal = document.getElementById('deleteReviewModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    let pendingDeleteReviewId = null;
 
     if (!reviewsGrid) return;
 
@@ -343,7 +386,8 @@ function initReviewForm() {
         const currentAuthorToken = getAuthorToken();
 
         reviews.forEach((review) => {
-            const isAuthor = review.authorToken === currentAuthorToken;
+            // Author check: matches token, or review has no authorToken but was created on this client
+            const isAuthor = review.authorToken === currentAuthorToken || (!review.authorToken && String(review.id).startsWith('rev_'));
 
             const card = document.createElement('div');
             card.className = 'review-card';
@@ -388,7 +432,7 @@ function initReviewForm() {
                 deleteBtn.type = 'button';
                 deleteBtn.className = 'review-action-btn delete-btn';
                 deleteBtn.textContent = 'Delete';
-                deleteBtn.addEventListener('click', () => handleDeleteReview(review.id));
+                deleteBtn.addEventListener('click', () => openDeleteModal(review.id));
 
                 actions.appendChild(editBtn);
                 actions.appendChild(deleteBtn);
@@ -399,27 +443,64 @@ function initReviewForm() {
         });
     }
 
-    // Fetch reviews from server API (with local storage fallback)
+    // Fetch reviews from server API (with bidirectional auto-sync and local storage fallback)
     async function loadReviews() {
+        // 1. Instantly display local reviews for 0ms initial render
+        const initialLocal = getLocalReviews();
+        renderReviewsList(initialLocal);
+
+        // 2. Fetch fresh reviews from server API (with fast timeout)
         try {
-            const res = await fetch('/api/reviews');
+            const res = await fetchWithTimeout(getApiUrl('/api/reviews'), {}, 2000);
             if (res.ok) {
                 const data = await res.json();
-                const serverReviews = data.reviews || [];
-                saveLocalReviews(serverReviews);
-                renderReviewsList(serverReviews);
+                const serverReviews = Array.isArray(data.reviews) ? data.reviews : [];
+
+                // 3. Auto-sync unsynced local reviews to server database
+                const currentLocal = getLocalReviews();
+                const currentAuthorToken = getAuthorToken();
+
+                for (const localRev of currentLocal) {
+                    const existsOnServer = serverReviews.some(sr => sr.id === localRev.id);
+                    if (!existsOnServer && localRev.name && localRev.text) {
+                        // Push unsynced review to server in background
+                        fetchWithTimeout(getApiUrl('/api/reviews'), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-author-token': localRev.authorToken || currentAuthorToken
+                            },
+                            body: JSON.stringify({
+                                id: localRev.id,
+                                name: localRev.name,
+                                text: localRev.text,
+                                authorToken: localRev.authorToken || currentAuthorToken,
+                                createdAt: localRev.createdAt || Date.now()
+                            })
+                        }, 2000).catch(err => console.warn('Background sync item error:', err));
+                    }
+                }
+
+                // 4. Merge server & local reviews (deduplicated by id, sorted newest first)
+                const map = new Map();
+                serverReviews.forEach(r => map.set(r.id, r));
+                currentLocal.forEach(r => {
+                    if (!map.has(r.id)) map.set(r.id, r);
+                });
+                const merged = Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                saveLocalReviews(merged);
+                renderReviewsList(merged);
                 return;
             }
         } catch (err) {
-            console.log('Server not reachable, reading from local storage:', err);
+            console.log('Server not reachable or timed out, keeping local cache:', err);
         }
 
-        // Fallback to local storage if API is not running or network error
-        const localReviews = getLocalReviews();
-        renderReviewsList(localReviews);
+        // Fallback: local reviews are already rendered
     }
 
-    // Handle new review submission
+    // Handle new review submission (Instant Optimistic UI + Background Sync)
     if (reviewForm) {
         reviewForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -430,39 +511,16 @@ function initReviewForm() {
             if (!name || !text) return;
 
             const authorToken = getAuthorToken();
-
-            try {
-                const res = await fetch('/api/reviews', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name, text, authorToken })
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.authorToken) {
-                        localStorage.setItem(AUTHOR_TOKEN_KEY, data.authorToken);
-                    }
-                    reviewForm.reset();
-                    showNotice('Thank you for the review!');
-                    await loadReviews();
-                    return;
-                }
-            } catch (err) {
-                console.log('Server unreachable on submit, using local fallback:', err);
-            }
-
-            // Local fallback
+            const reviewId = 'rev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
             const newReview = {
-                id: 'rev_' + Date.now(),
+                id: reviewId,
                 name: name,
                 text: text,
                 authorToken: authorToken,
                 createdAt: Date.now()
             };
 
+            // 1. Optimistic instant UI update (<10ms)
             const localReviews = getLocalReviews();
             localReviews.unshift(newReview);
             saveLocalReviews(localReviews);
@@ -470,6 +528,25 @@ function initReviewForm() {
 
             reviewForm.reset();
             showNotice('Thank you for the review!');
+
+            // 2. Background async sync to server without blocking UI
+            fetchWithTimeout(getApiUrl('/api/reviews'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-author-token': authorToken
+                },
+                body: JSON.stringify(newReview)
+            }, 3000).then(async (res) => {
+                if (res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    if (data.authorToken && data.authorToken !== authorToken) {
+                        localStorage.setItem(AUTHOR_TOKEN_KEY, data.authorToken);
+                    }
+                }
+            }).catch((err) => {
+                console.warn('Review stored locally; server sync deferred:', err);
+            });
         });
     }
 
@@ -508,83 +585,98 @@ function initReviewForm() {
 
             const authorToken = getAuthorToken();
 
-            try {
-                const res = await fetch(`/api/reviews/${encodeURIComponent(id)}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-author-token': authorToken
-                    },
-                    body: JSON.stringify({ name: updatedName, text: updatedText })
-                });
-
-                if (res.ok) {
-                    closeEditModal();
-                    showNotice('Your review has been updated successfully!');
-                    await loadReviews();
-                    return;
-                } else {
-                    const errData = await res.json().catch(() => ({}));
-                    alert(errData.error || 'Unable to update review.');
-                    return;
-                }
-            } catch (err) {
-                console.log('Server unreachable on update, fallback to local storage:', err);
-            }
-
-            // Local fallback
+            // 1. Optimistic instant UI update
             const localReviews = getLocalReviews();
-            const index = localReviews.findIndex((r) => r.id === id && r.authorToken === authorToken);
+            const index = localReviews.findIndex((r) => r.id === id);
 
             if (index !== -1) {
                 localReviews[index].name = updatedName;
                 localReviews[index].text = updatedText;
                 localReviews[index].updatedAt = Date.now();
                 saveLocalReviews(localReviews);
-
                 renderReviewsList(localReviews);
-                closeEditModal();
-                showNotice('Your review has been updated successfully!');
+            }
+
+            closeEditModal();
+            showNotice('Your review has been updated successfully!');
+
+            // 2. Background server update
+            fetchWithTimeout(getApiUrl(`/api/reviews/${encodeURIComponent(id)}`), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-author-token': authorToken
+                },
+                body: JSON.stringify({ name: updatedName, text: updatedText })
+            }, 3000).catch((err) => {
+                console.warn('Server edit request error:', err);
+            });
+        });
+    }
+
+    // Delete Modal Functions (In-Page Popup instead of window.confirm/alert)
+    function openDeleteModal(id) {
+        pendingDeleteReviewId = id;
+        if (deleteModal) {
+            deleteModal.classList.add('show');
+        }
+    }
+
+    function closeDeleteModal() {
+        pendingDeleteReviewId = null;
+        if (deleteModal) {
+            deleteModal.classList.remove('show');
+        }
+    }
+
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) closeDeleteModal();
+        });
+    }
+
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (pendingDeleteReviewId) {
+                const id = pendingDeleteReviewId;
+                closeDeleteModal();
+                executeDeleteReview(id);
             }
         });
     }
 
-    // Delete review function
-    async function handleDeleteReview(id) {
-        if (!confirm('Are you sure you want to delete your review? This cannot be undone.')) {
-            return;
+    // Close modals on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeEditModal();
+            closeDeleteModal();
         }
+    });
 
+    // Execute Delete review (Instant Optimistic UI + Background Server Sync)
+    async function executeDeleteReview(id) {
         const authorToken = getAuthorToken();
 
-        try {
-            const res = await fetch(`/api/reviews/${encodeURIComponent(id)}`, {
-                method: 'DELETE',
-                headers: {
-                    'x-author-token': authorToken
-                }
-            });
-
-            if (res.ok) {
-                showNotice('Your review has been deleted.');
-                await loadReviews();
-                return;
-            } else {
-                const errData = await res.json().catch(() => ({}));
-                alert(errData.error || 'Unable to delete review.');
-                return;
-            }
-        } catch (err) {
-            console.log('Server unreachable on delete, fallback to local storage:', err);
-        }
-
-        // Local fallback
+        // 1. Optimistic instant UI update
         const localReviews = getLocalReviews();
-        const filtered = localReviews.filter((r) => !(r.id === id && r.authorToken === authorToken));
+        const filtered = localReviews.filter((r) => r.id !== id);
         saveLocalReviews(filtered);
-
         renderReviewsList(filtered);
         showNotice('Your review has been deleted.');
+
+        // 2. Background server deletion
+        fetchWithTimeout(getApiUrl(`/api/reviews/${encodeURIComponent(id)}`), {
+            method: 'DELETE',
+            headers: {
+                'x-author-token': authorToken
+            }
+        }, 3000).catch((err) => {
+            console.warn('Server delete request error:', err);
+        });
     }
 
     // Load initial reviews
@@ -677,3 +769,57 @@ function initBackToTop() {
         });
     });
 }
+
+/* ==============================================
+   8. ACTIVE NAVIGATION SCROLLSPY
+   ============================================== */
+function initScrollSpy() {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-bar li a');
+
+    if (sections.length === 0 || navLinks.length === 0) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const currentId = entry.target.getAttribute('id');
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === `#${currentId}`) {
+                        link.classList.add('active');
+                        link.setAttribute('aria-current', 'page');
+                    } else if (link.getAttribute('href').startsWith('#')) {
+                        link.classList.remove('active');
+                        link.removeAttribute('aria-current');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: '-25% 0px -55% 0px' });
+
+    sections.forEach(sec => observer.observe(sec));
+}
+
+/* ==============================================
+   9. SCROLL REVEAL ANIMATIONS
+   ============================================== */
+function initScrollReveal() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const revealElements = document.querySelectorAll('.skill-card-link, .review-card, .intro-content, .portrait-frame, .share-patch');
+    if (!revealElements.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('revealed');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    revealElements.forEach(el => {
+        el.classList.add('reveal-init');
+        observer.observe(el);
+    });
+}
+

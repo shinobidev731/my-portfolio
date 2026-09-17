@@ -39,8 +39,12 @@
                 <h1 class="hero-greeting">Hello there,</h1>
                 <h2 class="hero-name">I am Ikeoluwa Makinwa</h2>
                 <p class="hero-desc">
-                    Creative Graphic Designer, Photographer, and Front-End Developer with a passion for crafting elegant digital experiences and captivating brand identities with detailed precision and attention to detail.
+                    Creative Graphic Designer, Front-End Developer and Photographer with a passion for crafting elegant digital experiences and captivating brand identities with detailed precision and attention to detail.
                 </p>
+                <div class="hero-actions">
+                    <a href="#skills" class="hero-btn primary-hero-btn">Explore Products &darr;</a>
+                    <a href="#contact" class="hero-btn secondary-hero-btn">Get In Touch &rarr;</a>
+                </div>
             </div>
         </section>
 
@@ -54,9 +58,10 @@
                         I am a versatile Polymath and currently a 400-level Software Engineering student at the Federal University of Technology, Akure (FUTA). Bridging aesthetics with technical excellence, I transform complex ideas into visually engaging designs and seamless interactive web applications.
                     </p>
                     <p class="read-more">you could read more about me here:</p>
-                    <a href="#about" class="btn-link">
+                    <div class="about-actions">
                         <button id="cv-btn" class="CV-button">Download CV &darr;</button>
-                    </a>
+                        <a href="./Ikeoluwa_Ayanfe_Makinwa_Resume.pdf" target="_blank" rel="noopener" class="preview-cv-link" title="Preview Resume in new tab">Preview Resume ↗</a>
+                    </div>
                 </div>
 
                 <div class="intro-image-wrapper">
@@ -71,8 +76,7 @@
         <section id="skills" class="skills-section">
             <div class="skills-container">
                 <h1 class="section-title">Here's some of the things I can do</h1>
-                    <p class="">click to view completed projects and qualifications</p> <br>
-                
+                <p class="skills-intro-p">click to view completed projects and qualifications</p> <br>
 
                 <!-- 5 Skills on one line, wrapping responsively -->
                 <div class="skills-grid">
@@ -99,9 +103,9 @@
                             <h3>Frontend Development</h3>
                             <div class="skill-badges frontend-badges">
                                 <img src="./photos/reactpic.png" alt="React" class="skill-badge-img" title="React">
-                                <img src="./photos/html.png" alt="React" class="skill-badge-img" title="React">
-                                <img src="./photos/css.png" alt="React" class="skill-badge-img" title="React">
-                                <img src="./photos/javascript.png" alt="React" class="skill-badge-img" title="React">
+                                <img src="./photos/html.png" alt="HTML5" class="skill-badge-img" title="HTML5">
+                                <img src="./photos/css.png" alt="CSS3" class="skill-badge-img" title="CSS3">
+                                <img src="./photos/javascript.png" alt="JavaScript" class="skill-badge-img" title="JavaScript">
                             </div>
                             <div class="skill-stats">
                                 <span class="stat-number">4+</span>
@@ -111,7 +115,7 @@
                         </div>
                     </a>
 
-                                        <a href="#" class="skill-card-link">
+                    <a href="photography.html" class="skill-card-link">
                         <div class="skill-card photo-card">
                             <div class="skill-texture"></div>
                             <h3>Photography</h3>
@@ -126,14 +130,14 @@
                         </div>
                     </a>
 
-                    <a href="#" class="skill-card-link">
+                    <a href="software.html" class="skill-card-link">
                         <div class="skill-card">
                             <h3>Software Engineering</h3>
                             <p class="skill-info">400Level Student at the Federal University of Technology Akure (FUTA)</p>
                         </div>
                     </a>
 
-                    <a href="#" class="skill-card-link">
+                    <a href="cybersecurity.html" class="skill-card-link">
                         <div class="skill-card">
                             <h3>Cybersecurity</h3>
                             <p class="skill-info highlight-status">In Training</p>
@@ -183,6 +187,7 @@
             <div class="contact-container">
                 <h1 class="section-title">Contact Me</h1>
                 <p class="reach-out-p">you can reach out to me on any of my socials</p>
+
 
                 <div class="socials-tray">
                     <a href="https://linkedin.com/in/ikeoluwa-makinwa" target="_blank" rel="noopener" class="social-icon" title="LinkedIn">
@@ -275,6 +280,18 @@
                         <button type="submit" class="submit-btn">Save Changes</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Delete Review Modal -->
+        <div id="deleteReviewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+            <div class="modal-card delete-modal-card">
+                <h2 id="deleteModalTitle" class="modal-title">Delete Review</h2>
+                <p class="delete-modal-text">Are you sure you want to delete this review? This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button type="button" id="cancelDeleteBtn" class="modal-cancel-btn">Cancel</button>
+                    <button type="button" id="confirmDeleteBtn" class="delete-confirm-btn">Delete</button>
+                </div>
             </div>
         </div>
     </main>
