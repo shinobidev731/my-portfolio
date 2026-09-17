@@ -1,16 +1,12 @@
 {
   "name": "portfolio",
-  "version": "1.0.0",
-  "description": "Portfolio Website with Review Management System",
+  "version": "1.1.0",
+  "description": "Ikeoluwa Makinwa Portfolio — Backend with SQLite review system",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [
-    "portfolio",
-    "reviews"
-  ],
+  "keywords": ["portfolio", "reviews", "sqlite"],
   "author": "Ikeoluwa Makinwa",
   "license": "ISC"
 }
-

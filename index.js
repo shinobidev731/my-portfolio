@@ -277,123 +277,102 @@ function initReferralFeature() {
 }
 
 /* ==============================================
-   4. CLIENT REVIEWS & PERSISTENT STORAGE
-   (Node.js REST API + LocalStorage fallback)
+   4. CLIENT REVIEWS  (SQLite REST API)
    ============================================== */
 
-const STORAGE_KEY = 'portfolio_reviews_data';
-const AUTHOR_TOKEN_KEY = 'portfolio_author_token';
-
-// API Base URL helper (supports localhost:3000, Live Server, and relative)
+// API Base URL: relative when served from the backend, absolute for dev tools
 function getApiUrl(endpoint) {
+    // Served by our own Node server (port 3000 or standard ports)
     if (window.location.protocol === 'http:' && (window.location.port === '3000' || window.location.port === '')) {
         return endpoint;
     }
-    return 'http://localhost:3000' + endpoint;
+    // Live Server, VS Code, or other dev origins — point directly to backend
+    const base = window.__API_BASE__ || 'http://localhost:3000';
+    return base + endpoint;
 }
 
-// Resilient fetch with fast timeout to avoid UI blocking
-async function fetchWithTimeout(url, options = {}, timeoutMs = 2000) {
+// Fetch with configurable timeout
+async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const id = setTimeout(() => controller.abort(), timeoutMs);
     try {
         const res = await fetch(url, { ...options, signal: controller.signal });
-        clearTimeout(timeoutId);
+        clearTimeout(id);
         return res;
     } catch (err) {
-        clearTimeout(timeoutId);
+        clearTimeout(id);
         throw err;
     }
 }
 
-// Retrieve or generate unique author token for this client
+// Persistent per-browser author token (for edit/delete ownership)
 function getAuthorToken() {
     let token = localStorage.getItem(AUTHOR_TOKEN_KEY);
     if (!token) {
-        token = 'auth_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+        token = 'auth_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
         localStorage.setItem(AUTHOR_TOKEN_KEY, token);
     }
     return token;
 }
 
 function initReviewForm() {
-    const reviewForm = document.getElementById('reviewForm');
-    const reviewerName = document.getElementById('reviewerName');
-    const reviewerText = document.getElementById('reviewerText');
-    const reviewsGrid = document.getElementById('reviewsGrid');
-    const formNotice = document.getElementById('formNotice');
+    const reviewForm    = document.getElementById('reviewForm');
+    const reviewerName  = document.getElementById('reviewerName');
+    const reviewerText  = document.getElementById('reviewerText');
+    const reviewsGrid   = document.getElementById('reviewsGrid');
+    const formNotice    = document.getElementById('formNotice');
 
-    // Edit modal elements
-    const editModal = document.getElementById('editReviewModal');
-    const editForm = document.getElementById('editReviewForm');
-    const editIdInput = document.getElementById('editReviewId');
+    // Edit modal
+    const editModal     = document.getElementById('editReviewModal');
+    const editForm      = document.getElementById('editReviewForm');
+    const editIdInput   = document.getElementById('editReviewId');
     const editNameInput = document.getElementById('editReviewName');
     const editTextInput = document.getElementById('editReviewText');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-    // Delete modal elements
-    const deleteModal = document.getElementById('deleteReviewModal');
-    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    // Delete modal
+    const deleteModal      = document.getElementById('deleteReviewModal');
+    const cancelDeleteBtn  = document.getElementById('cancelDeleteBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    let pendingDeleteReviewId = null;
+    let pendingDeleteId    = null;
 
     if (!reviewsGrid) return;
 
-    let noticeTimeout = null;
-
-    function showNotice(message) {
+    // ── Notification toast ──────────────────────────────────────
+    let noticeTimer = null;
+    function showNotice(msg, isError = false) {
         if (!formNotice) return;
-        formNotice.textContent = message;
+        formNotice.textContent = msg;
+        formNotice.classList.toggle('error-notice', isError);
         formNotice.classList.add('show');
-
-        if (noticeTimeout) clearTimeout(noticeTimeout);
-        noticeTimeout = setTimeout(() => {
-            formNotice.classList.remove('show');
-        }, 4500);
+        if (noticeTimer) clearTimeout(noticeTimer);
+        noticeTimer = setTimeout(() => formNotice.classList.remove('show'), 4500);
     }
 
-    // Local storage helpers (fallback & sync)
-    function getLocalReviews() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            console.error('Failed to parse local reviews:', e);
-            return [];
-        }
-    }
+    // ── In-memory cache of displayed reviews ────────────────────
+    let cachedReviews = [];
 
-    function saveLocalReviews(reviews) {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
-        } catch (e) {
-            console.error('Failed to save local reviews:', e);
-        }
-    }
-
-    // Render review cards or empty state
-    function renderReviewsList(reviews) {
+    // ── Render helpers ───────────────────────────────────────────
+    function renderReviews(reviews) {
+        cachedReviews = reviews;
         reviewsGrid.innerHTML = '';
 
-        if (!reviews || reviews.length === 0) {
-            const emptyMsg = document.createElement('div');
-            emptyMsg.className = 'no-reviews-msg';
-            emptyMsg.textContent = 'No reviews yet';
-            reviewsGrid.appendChild(emptyMsg);
+        if (!reviews.length) {
+            const msg = document.createElement('div');
+            msg.className = 'no-reviews-msg';
+            msg.textContent = 'No reviews yet — be the first!';
+            reviewsGrid.appendChild(msg);
             return;
         }
 
-        const currentAuthorToken = getAuthorToken();
-
-        reviews.forEach((review) => {
-            // Author check: matches token, or review has no authorToken but was created on this client
-            const isAuthor = review.authorToken === currentAuthorToken || (!review.authorToken && String(review.id).startsWith('rev_'));
+        const myToken = getAuthorToken();
+        reviews.forEach(review => {
+            const isAuthor = review.authorToken === myToken;
 
             const card = document.createElement('div');
             card.className = 'review-card';
             card.dataset.id = review.id;
 
-            // Review header (name + author badge)
             const header = document.createElement('div');
             header.className = 'review-header';
 
@@ -403,13 +382,12 @@ function initReviewForm() {
             header.appendChild(h3);
 
             if (isAuthor) {
-                const authorBadge = document.createElement('span');
-                authorBadge.className = 'author-pill';
-                authorBadge.textContent = 'You';
-                header.appendChild(authorBadge);
+                const badge = document.createElement('span');
+                badge.className = 'author-pill';
+                badge.textContent = 'You';
+                header.appendChild(badge);
             }
 
-            // Review text
             const p = document.createElement('p');
             p.className = 'review-text';
             p.textContent = review.text;
@@ -417,7 +395,6 @@ function initReviewForm() {
             card.appendChild(header);
             card.appendChild(p);
 
-            // Author-only actions (Edit & Delete)
             if (isAuthor) {
                 const actions = document.createElement('div');
                 actions.className = 'review-actions';
@@ -443,117 +420,79 @@ function initReviewForm() {
         });
     }
 
-    // Fetch reviews from server API (with bidirectional auto-sync and local storage fallback)
+    // ── Load from server ─────────────────────────────────────────
     async function loadReviews() {
-        // 1. Instantly display local reviews for 0ms initial render
-        const initialLocal = getLocalReviews();
-        renderReviewsList(initialLocal);
-
-        // 2. Fetch fresh reviews from server API (with fast timeout)
+        // Show skeleton while loading
+        reviewsGrid.innerHTML = '<div class="no-reviews-msg">Loading reviews…</div>';
         try {
-            const res = await fetchWithTimeout(getApiUrl('/api/reviews'), {}, 2000);
-            if (res.ok) {
-                const data = await res.json();
-                const serverReviews = Array.isArray(data.reviews) ? data.reviews : [];
-
-                // 3. Auto-sync unsynced local reviews to server database
-                const currentLocal = getLocalReviews();
-                const currentAuthorToken = getAuthorToken();
-
-                for (const localRev of currentLocal) {
-                    const existsOnServer = serverReviews.some(sr => sr.id === localRev.id);
-                    if (!existsOnServer && localRev.name && localRev.text) {
-                        // Push unsynced review to server in background
-                        fetchWithTimeout(getApiUrl('/api/reviews'), {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'x-author-token': localRev.authorToken || currentAuthorToken
-                            },
-                            body: JSON.stringify({
-                                id: localRev.id,
-                                name: localRev.name,
-                                text: localRev.text,
-                                authorToken: localRev.authorToken || currentAuthorToken,
-                                createdAt: localRev.createdAt || Date.now()
-                            })
-                        }, 2000).catch(err => console.warn('Background sync item error:', err));
-                    }
-                }
-
-                // 4. Merge server & local reviews (deduplicated by id, sorted newest first)
-                const map = new Map();
-                serverReviews.forEach(r => map.set(r.id, r));
-                currentLocal.forEach(r => {
-                    if (!map.has(r.id)) map.set(r.id, r);
-                });
-                const merged = Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-                saveLocalReviews(merged);
-                renderReviewsList(merged);
-                return;
-            }
+            const res = await fetchWithTimeout(getApiUrl('/api/reviews'), {}, 6000);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            renderReviews(Array.isArray(data.reviews) ? data.reviews : []);
         } catch (err) {
-            console.log('Server not reachable or timed out, keeping local cache:', err);
+            console.error('Failed to load reviews:', err);
+            reviewsGrid.innerHTML = '';
+            const errMsg = document.createElement('div');
+            errMsg.className = 'no-reviews-msg';
+            errMsg.textContent = 'Could not load reviews. Make sure the server is running.';
+            reviewsGrid.appendChild(errMsg);
         }
-
-        // Fallback: local reviews are already rendered
     }
 
-    // Handle new review submission (Instant Optimistic UI + Background Sync)
+    // ── Submit new review ────────────────────────────────────────
     if (reviewForm) {
         reviewForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const name = reviewerName.value.trim();
             const text = reviewerText.value.trim();
-
             if (!name || !text) return;
 
+            const submitBtn = reviewForm.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Posting…'; }
+
             const authorToken = getAuthorToken();
-            const reviewId = 'rev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
             const newReview = {
-                id: reviewId,
-                name: name,
-                text: text,
-                authorToken: authorToken,
-                createdAt: Date.now()
+                id:          'rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                name,
+                text,
+                authorToken,
+                createdAt:   Date.now(),
             };
 
-            // 1. Optimistic instant UI update (<10ms)
-            const localReviews = getLocalReviews();
-            localReviews.unshift(newReview);
-            saveLocalReviews(localReviews);
-            renderReviewsList(localReviews);
-
+            // Optimistic prepend to UI
+            renderReviews([newReview, ...cachedReviews]);
             reviewForm.reset();
-            showNotice('Thank you for the review!');
+            showNotice('Thank you for your review!');
 
-            // 2. Background async sync to server without blocking UI
-            fetchWithTimeout(getApiUrl('/api/reviews'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-author-token': authorToken
-                },
-                body: JSON.stringify(newReview)
-            }, 3000).then(async (res) => {
-                if (res.ok) {
-                    const data = await res.json().catch(() => ({}));
-                    if (data.authorToken && data.authorToken !== authorToken) {
-                        localStorage.setItem(AUTHOR_TOKEN_KEY, data.authorToken);
-                    }
+            try {
+                const res = await fetchWithTimeout(getApiUrl('/api/reviews'), {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-author-token': authorToken },
+                    body:    JSON.stringify(newReview),
+                }, 6000);
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || `HTTP ${res.status}`);
                 }
-            }).catch((err) => {
-                console.warn('Review stored locally; server sync deferred:', err);
-            });
+                // Refresh to get server-assigned values
+                loadReviews();
+            } catch (err) {
+                console.error('Submit failed:', err);
+                showNotice('Failed to save review — please try again.', true);
+                // Revert optimistic update
+                renderReviews(cachedReviews.filter(r => r.id !== newReview.id));
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit'; }
+            }
         });
     }
 
-    // Modal Edit functions
+    // ── Edit modal ───────────────────────────────────────────────
     function openEditModal(review) {
-        if (!editModal || !editIdInput || !editNameInput || !editTextInput) return;
-        editIdInput.value = review.id;
+        if (!editModal) return;
+        editIdInput.value   = review.id;
         editNameInput.value = review.name;
         editTextInput.value = review.text;
         editModal.classList.add('show');
@@ -563,123 +502,92 @@ function initReviewForm() {
         if (editModal) editModal.classList.remove('show');
     }
 
-    if (cancelEditBtn) {
-        cancelEditBtn.addEventListener('click', closeEditModal);
-    }
-
-    if (editModal) {
-        editModal.addEventListener('click', (e) => {
-            if (e.target === editModal) closeEditModal();
-        });
-    }
+    if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModal);
+    if (editModal)     editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
 
     if (editForm) {
         editForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const id = editIdInput.value;
+            const id          = editIdInput.value;
             const updatedName = editNameInput.value.trim();
             const updatedText = editTextInput.value.trim();
-
             if (!id || !updatedName || !updatedText) return;
 
             const authorToken = getAuthorToken();
 
-            // 1. Optimistic instant UI update
-            const localReviews = getLocalReviews();
-            const index = localReviews.findIndex((r) => r.id === id);
-
-            if (index !== -1) {
-                localReviews[index].name = updatedName;
-                localReviews[index].text = updatedText;
-                localReviews[index].updatedAt = Date.now();
-                saveLocalReviews(localReviews);
-                renderReviewsList(localReviews);
-            }
-
+            // Optimistic update
+            const updated = cachedReviews.map(r =>
+                r.id === id ? { ...r, name: updatedName, text: updatedText } : r
+            );
+            renderReviews(updated);
             closeEditModal();
-            showNotice('Your review has been updated successfully!');
+            showNotice('Review updated!');
 
-            // 2. Background server update
-            fetchWithTimeout(getApiUrl(`/api/reviews/${encodeURIComponent(id)}`), {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-author-token': authorToken
-                },
-                body: JSON.stringify({ name: updatedName, text: updatedText })
-            }, 3000).catch((err) => {
-                console.warn('Server edit request error:', err);
-            });
+            try {
+                const res = await fetchWithTimeout(
+                    getApiUrl(`/api/reviews/${encodeURIComponent(id)}`), {
+                        method:  'PUT',
+                        headers: { 'Content-Type': 'application/json', 'x-author-token': authorToken },
+                        body:    JSON.stringify({ name: updatedName, text: updatedText }),
+                    }, 6000
+                );
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            } catch (err) {
+                console.error('Edit failed:', err);
+                showNotice('Update failed — please try again.', true);
+                loadReviews(); // Re-sync with server truth
+            }
         });
     }
 
-    // Delete Modal Functions (In-Page Popup instead of window.confirm/alert)
+    // ── Delete modal ─────────────────────────────────────────────
     function openDeleteModal(id) {
-        pendingDeleteReviewId = id;
-        if (deleteModal) {
-            deleteModal.classList.add('show');
-        }
+        pendingDeleteId = id;
+        if (deleteModal) deleteModal.classList.add('show');
     }
 
     function closeDeleteModal() {
-        pendingDeleteReviewId = null;
-        if (deleteModal) {
-            deleteModal.classList.remove('show');
-        }
+        pendingDeleteId = null;
+        if (deleteModal) deleteModal.classList.remove('show');
     }
 
-    if (cancelDeleteBtn) {
-        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-    }
-
-    if (deleteModal) {
-        deleteModal.addEventListener('click', (e) => {
-            if (e.target === deleteModal) closeDeleteModal();
-        });
-    }
+    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    if (deleteModal)     deleteModal.addEventListener('click', e => { if (e.target === deleteModal) closeDeleteModal(); });
 
     if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', () => {
-            if (pendingDeleteReviewId) {
-                const id = pendingDeleteReviewId;
-                closeDeleteModal();
-                executeDeleteReview(id);
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (!pendingDeleteId) return;
+            const id = pendingDeleteId;
+            closeDeleteModal();
+
+            const authorToken = getAuthorToken();
+
+            // Optimistic remove
+            renderReviews(cachedReviews.filter(r => r.id !== id));
+            showNotice('Review deleted.');
+
+            try {
+                const res = await fetchWithTimeout(
+                    getApiUrl(`/api/reviews/${encodeURIComponent(id)}`), {
+                        method:  'DELETE',
+                        headers: { 'x-author-token': authorToken },
+                    }, 6000
+                );
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            } catch (err) {
+                console.error('Delete failed:', err);
+                showNotice('Delete failed — please try again.', true);
+                loadReviews(); // Re-sync
             }
         });
     }
 
-    // Close modals on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeEditModal();
-            closeDeleteModal();
-        }
+    // Escape closes both modals
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeEditModal(); closeDeleteModal(); }
     });
 
-    // Execute Delete review (Instant Optimistic UI + Background Server Sync)
-    async function executeDeleteReview(id) {
-        const authorToken = getAuthorToken();
-
-        // 1. Optimistic instant UI update
-        const localReviews = getLocalReviews();
-        const filtered = localReviews.filter((r) => r.id !== id);
-        saveLocalReviews(filtered);
-        renderReviewsList(filtered);
-        showNotice('Your review has been deleted.');
-
-        // 2. Background server deletion
-        fetchWithTimeout(getApiUrl(`/api/reviews/${encodeURIComponent(id)}`), {
-            method: 'DELETE',
-            headers: {
-                'x-author-token': authorToken
-            }
-        }, 3000).catch((err) => {
-            console.warn('Server delete request error:', err);
-        });
-    }
-
-    // Load initial reviews
     loadReviews();
 }
 
