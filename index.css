@@ -11,7 +11,9 @@
     --btn-text: #4f1e0c;
     --btn-hover: #ffffff;
     --card-border: #9d3914;
+    --card-border-hover: #ede8d1;
     --accent-orange: #d96b27;
+    --status-green: #22c55e;
 }
 
 * {
@@ -26,11 +28,18 @@ html {
 }
 
 body {
-    background-color: var(--bg-primary);
+    background: radial-gradient(circle at 50% -10%, #68230c 0%, #3a1608 45%, #1c0a03 100%) no-repeat fixed;
+    background-color: #1c0a03;
     color: var(--text-primary);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     overflow-x: hidden;
     line-height: 1.6;
+}
+
+main {
+    flex: 1 0 auto;
 }
 
 a {
@@ -69,13 +78,14 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    1. MAIN HEADER & NAVIGATION
    ============================ */
 .main-header {
-    background-color: rgba(54, 21, 8, 0.95);
-    backdrop-filter: blur(5px);
+    background: linear-gradient(180deg, rgba(45, 16, 6, 0.98) 0%, rgba(30, 10, 4, 0.92) 100%);
+    backdrop-filter: blur(10px);
     width: 100%;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid rgba(157, 57, 20, 0.35);
     /* Needed so the mobile dropdown anchors to this element */
     isolation: isolate;
 }
@@ -162,10 +172,10 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    ============================ */
 .hero-section {
     position: relative;
-    padding: 90px 20px 80px;
+    padding: 90px 20px 85px;
     text-align: center;
     overflow: hidden;
-    background: radial-gradient(circle at center top, #943715 10%, #421708 70%);
+    background: radial-gradient(ellipse at 50% 25%, rgba(168, 56, 17, 0.45) 0%, rgba(74, 26, 9, 0.6) 55%, rgba(28, 10, 3, 0.95) 100%);
 }
 
 .code-bg-overlay {
@@ -194,7 +204,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     font-weight: 800;
     letter-spacing: 1.5px;
     margin-bottom: 4px;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    text-shadow: 0 4px 14px rgba(0,0,0,0.4);
 }
 
 .hero-name {
@@ -275,16 +285,17 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     height: 420px;
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid #9D3914;
+    border: 2px solid var(--card-border);
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
     background: #361508;
     position: relative;
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
 }
 
 .portrait-frame:hover {
     transform: translateY(-4px) scale(1.02);
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+    border-color: var(--card-border-hover);
 }
 
 .my-pic {
@@ -299,8 +310,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    4. SKILLS SECTION
    ============================ */
 .skills-section {
-    padding: 70px 20px 80px;
-    background-color: rgba(54, 21, 8, 0.4);
+    padding: 75px 20px 85px;
+    background: linear-gradient(180deg, rgba(28, 10, 3, 0.3) 0%, rgba(66, 26, 11, 0.45) 50%, rgba(28, 10, 3, 0.3) 100%);
 }
 
 .skills-container {
@@ -364,13 +375,13 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .skill-card {
-    background-color: var(--bg-card);
+    background: linear-gradient(145deg, #421a0b 0%, #2b0f05 100%);
     width: 100%;
     flex: 1;
     min-height: 280px;
     padding: 22px 14px;
     border-radius: 20px;
-    outline: 2px solid var(--card-border);
+    border: 2px solid var(--card-border);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -379,12 +390,12 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     position: relative;
     overflow: hidden;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    transition: box-shadow 0.3s ease, outline-color 0.3s ease;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .skill-card-link:hover .skill-card, .skill-card:hover {
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
-    outline-color: #ffffff;
+    border-color: var(--card-border-hover);
 }
 
 .skill-card h3 {
@@ -409,11 +420,6 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     border-radius: 8px;
     display: inline-block;
     vertical-align: middle;
-    transition: transform 0.2s ease;
-}
-
-.skill-badge-img:hover {
-    transform: scale(1.18);
 }
 
 .badge {
@@ -542,6 +548,12 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+.carousel-track > a {
+    display: flex;
+    text-decoration: none;
+    color: inherit;
+}
+
 .carousel-slide {
     flex: 0 0 280px;
     opacity: 0.45;
@@ -549,11 +561,6 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
     width: 100%;
     cursor: pointer;
-}
-
-.graphics-flyers{
-    max-width: 240px;
-    max-height: 240px;
 }
 
 .carousel-slide.active {
@@ -564,11 +571,121 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .project-card {
-    background: #361508;
+    background: linear-gradient(145deg, #3a1608 0%, #260d04 100%);
     border-radius: 24px;
     padding: 16px;
-    border: 2px solid var(--text-primary);
+    border: 2px solid var(--card-border);
     text-align: center;
+    width: 100%;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-card:hover {
+    border-color: var(--card-border-hover);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+}
+
+.project-artwork {
+    width: 100%;
+    height: 240px;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+    background: #240d04;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.graphics-flyer-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #240d04;
+}
+
+.graphics-flyers {
+    max-width: 100%;
+    max-height: 220px;
+    object-fit: contain;
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto;
+    transition: transform 0.4s ease;
+}
+
+.project-card:hover .graphics-flyers {
+    transform: scale(1.05);
+}
+
+.artwork-landscape {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: linear-gradient(180deg, #bfe4fa 0%, #d8ecfa 60%, #a2c64e 61%);
+    overflow: hidden;
+}
+
+.art-cloud {
+    width: 70px;
+    height: 30px;
+    background: #ffffff;
+    border-radius: 20px;
+    position: absolute;
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.art-cloud::before,
+.art-cloud::after {
+    content: '';
+    position: absolute;
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+.art-cloud::before {
+    width: 32px;
+    height: 32px;
+    top: -14px;
+    left: 12px;
+}
+
+.art-cloud::after {
+    width: 24px;
+    height: 24px;
+    top: -10px;
+    left: 32px;
+}
+
+.art-cloud.small {
+    transform: scale(0.7);
+    top: 20px;
+}
+
+.art-hill {
+    position: absolute;
+    bottom: -20px;
+    border-radius: 50%;
+}
+
+.back-hill {
+    width: 240px;
+    height: 130px;
+    left: -30px;
+}
+
+.front-hill {
+    width: 260px;
+    height: 110px;
+    right: -30px;
 }
 
 
@@ -599,12 +716,13 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     top: 50%;
     transform: translateY(-50%);
     z-index: 20;
-    border: 1px solid rgba(237, 232, 209, 0.4);
+    border: 2px solid var(--card-border);
 }
 
 .carousel-nav-btn:hover {
     background: rgba(237, 232, 209, 0.85);
     color: #4f1e0c;
+    border-color: var(--card-border-hover);
     transform: translateY(-50%) scale(1.1);
 }
 
@@ -647,17 +765,19 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .cert-card {
-    background: var(--bg-card);
+    background: linear-gradient(145deg, #421a0b 0%, #2b0f05 100%);
     border-radius: 20px;
     padding: 16px;
     width: 290px;
-    border: 2px solid var(--text-primary);
+    border: 2px solid var(--card-border);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .cert-card:hover {
     transform: translateY(-4px);
+    border-color: var(--card-border-hover);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.45);
 }
 
 .cert-preview {
@@ -686,8 +806,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    6. REVIEWS SECTION
    ============================ */
 .reviews-section {
-    padding: 80px 20px;
-    background-color: rgba(54, 21, 8, 0.3);
+    padding: 85px 20px;
+    background: linear-gradient(180deg, rgba(28, 10, 3, 0.2) 0%, rgba(54, 21, 8, 0.5) 50%, rgba(28, 10, 3, 0.2) 100%);
 }
 
 .reviews-container {
@@ -709,19 +829,20 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     font-size: 1.15rem;
     font-weight: 600;
     color: var(--text-muted);
-    background: var(--bg-card);
-    border: 1px dashed rgba(237, 232, 209, 0.35);
+    background: linear-gradient(145deg, #421a0b 0%, #2b0f05 100%);
+    border: none;
     border-radius: 16px;
     letter-spacing: 0.3px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
 .review-card {
-    background: var(--bg-card);
+    background: linear-gradient(145deg, #421a0b 0%, #2b0f05 100%);
     border-radius: 16px;
     padding: 24px;
-    border: 1px solid rgba(237, 232, 209, 0.3);
+    border: none;
     box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    transition: transform 0.25s ease, border-color 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -729,7 +850,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 
 .review-card:hover {
     transform: translateY(-4px);
-    border-color: var(--card-border);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4);
 }
 
 .review-header {
@@ -752,7 +873,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     font-weight: 700;
     padding: 3px 10px;
     border-radius: 20px;
-    border: 1px solid rgba(237, 232, 209, 0.3);
+    border: none;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -766,12 +887,12 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .review-action-btn {
-    background: transparent;
-    border: 1px solid rgba(237, 232, 209, 0.4);
+    background: rgba(237, 232, 209, 0.08);
+    border: none;
     color: var(--text-primary);
     font-size: 0.8rem;
     font-weight: 600;
-    padding: 4px 14px;
+    padding: 5px 14px;
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -780,13 +901,11 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 .review-action-btn:hover {
     background: var(--btn-bg);
     color: var(--btn-text);
-    border-color: var(--btn-bg);
     transform: translateY(-1px);
 }
 
 .review-action-btn.delete-btn:hover {
     background: #a8291b;
-    border-color: #a8291b;
     color: #ffffff;
 }
 
@@ -875,8 +994,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     margin: 12px auto 20px;
     padding: 12px 28px;
     border-radius: 50px;
-    background-color: var(--bg-card);
-    border: 1.5px solid var(--card-border);
+    background: linear-gradient(145deg, #421a0b 0%, #2b0f05 100%);
+    border: none;
     color: var(--text-primary);
     font-size: 0.95rem;
     font-weight: 600;
@@ -893,8 +1012,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(30, 10, 4, 0.85);
-    backdrop-filter: blur(6px);
+    background: rgba(20, 7, 3, 0.88);
+    backdrop-filter: blur(8px);
     display: flex;
     display: none;
     align-items: center;
@@ -913,8 +1032,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .modal-card {
-    background: var(--bg-card);
-    border: 2px solid var(--card-border);
+    background: linear-gradient(145deg, #421a0b 0%, #250d05 100%);
+    border: none;
     border-radius: 20px;
     padding: 30px;
     max-width: 500px;
@@ -945,9 +1064,9 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .modal-cancel-btn {
-    background: transparent;
+    background: rgba(237, 232, 209, 0.1);
     color: var(--text-primary);
-    border: 1px solid var(--text-muted);
+    border: none;
     padding: 10px 22px;
     border-radius: 50px;
     font-weight: 600;
@@ -957,7 +1076,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 }
 
 .modal-cancel-btn:hover {
-    background: rgba(237, 232, 209, 0.15);
+    background: rgba(237, 232, 209, 0.2);
     color: #fff;
 }
 
@@ -973,7 +1092,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    7. CONTACT & REFERRAL SECTION
    ============================ */
 .contact-section {
-    padding: 80px 20px 60px;
+    padding: 85px 20px 65px;
+    background: linear-gradient(180deg, rgba(28, 10, 3, 0.2) 0%, rgba(45, 17, 7, 0.5) 100%);
 }
 
 .contact-container {
@@ -1005,7 +1125,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     height: 52px;
     border-radius: 50%;
     background-color: #00000021;
-    border: 1px solid #9D3914;
+    border: 2px solid var(--card-border);
     transition: all 0.25s ease;
     padding: 8px;
 }
@@ -1013,8 +1133,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 .social-icon:hover {
     transform: translateY(-4px) scale(1.1);
     background-color: var(--bg-card);
-    border-color: var(--text-primary);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    border-color: var(--card-border-hover);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
 .social-icon img {
@@ -1027,10 +1147,11 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
 .share-patch {
     max-width: 780px;
     margin: 0 auto;
-    padding: 40px 20px;
-    background: rgba(54, 21, 8, 0.5);
+    padding: 45px 25px;
+    background: linear-gradient(145deg, rgba(66, 26, 11, 0.85) 0%, rgba(37, 13, 5, 0.95) 100%);
     border-radius: 28px;
-    border: 1px solid #9D3914;
+    border: none;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
 }
 
 .share-p {
@@ -1053,7 +1174,7 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(237, 232, 209, 0.15);
+    border: none;
 }
 
 .flyer-img {
@@ -1096,12 +1217,12 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     bottom: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%);
-    background: #250d05;
-    border: 1px solid rgba(237, 232, 209, 0.3);
+    background: linear-gradient(145deg, #2b0f05 0%, #1c0a03 100%);
+    border: none;
     border-radius: 18px;
     padding: 10px;
     min-width: 200px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65);
     z-index: 200;
     animation: fadeIn 0.2s ease;
 }
@@ -1150,13 +1271,52 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    8. MAIN FOOTER
    ============================ */
 .main-footer {
-    background-color: var(--bg-secondary);
+    background: linear-gradient(180deg, rgba(31, 11, 4, 0.85) 0%, rgba(18, 6, 2, 0.98) 100%);
     text-align: center;
     padding: 30px 20px;
-    margin-top: 80px;
+    margin-top: auto;
     font-size: 0.95rem;
     color: var(--text-muted);
-    border-top: 1px solid rgba(237, 232, 209, 0.15);
+    border-top: 1px solid var(--card-border);
+    width: 100%;
+}
+
+/* Product Status Pill (Live / In Development) */
+.product-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 12px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    border-radius: 50px;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.product-status-pill.live {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #86efac;
+}
+
+.product-status-pill.dev {
+    background: rgba(217, 107, 39, 0.15);
+    border: 1px solid rgba(217, 107, 39, 0.45);
+    color: #fdba74;
+}
+
+.project-card:hover .product-status-pill.live {
+    background: rgba(34, 197, 94, 0.25);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.project-card:hover .product-status-pill.dev {
+    background: rgba(217, 107, 39, 0.25);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(217, 107, 39, 0.3);
 }
 
 /* Animations */
@@ -1263,14 +1423,15 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
    10. SUBPAGE LAYOUTS & DEDICATED THEMES
    ============================================== */
 .subpage-header {
-    background-color: rgba(54, 21, 8, 0.95);
-    backdrop-filter: blur(8px);
+    background: linear-gradient(180deg, rgba(45, 16, 6, 0.98) 0%, rgba(30, 10, 4, 0.92) 100%);
+    backdrop-filter: blur(10px);
     width: 100%;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
-    padding: 16px 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid rgba(157, 57, 20, 0.35);
+    padding: 18px 20px;
     text-align: center;
 }
 
@@ -1301,8 +1462,8 @@ button:active, .CV-button:active, .download-flyer-btn:active, .copy-btn:active, 
     margin: 10px auto 30px;
     max-width: 600px;
     padding: 14px 20px;
-    background: rgba(217, 107, 39, 0.2);
-    border: 2px solid var(--accent-orange);
+    background: linear-gradient(135deg, rgba(157, 57, 20, 0.25) 0%, rgba(54, 21, 8, 0.5) 100%);
+    border: 2px solid var(--card-border);
     border-radius: 16px;
     text-align: center;
 }

@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initReviewForm();
     initSmoothScroll();
     initMobileNav();
+    initBackToTop();
 });
 
 /* ==============================================
@@ -606,6 +607,18 @@ function initSmoothScroll() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
+            // Visual feedback for user & hiring officers
+            const originalText = cvBtn.innerHTML;
+            cvBtn.innerHTML = '&#10003; Resume Downloaded!';
+            cvBtn.style.backgroundColor = '#22c55e';
+            cvBtn.style.color = '#ffffff';
+
+            setTimeout(() => {
+                cvBtn.innerHTML = originalText;
+                cvBtn.style.backgroundColor = '';
+                cvBtn.style.color = '';
+            }, 2500);
         });
     }
 }
@@ -639,5 +652,28 @@ function initMobileNav() {
             navLinks.classList.remove('nav-open');
             hamburgerBtn.setAttribute('aria-expanded', 'false');
         }
+    });
+}
+
+/* ==============================================
+   7. BACK TO TOP BUTTON
+   ============================================== */
+function initBackToTop() {
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    if (!backToTopBtn) return;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 350) {
+            backToTopBtn.classList.add('show');
+        } else {
+            backToTopBtn.classList.remove('show');
+        }
+    }, { passive: true });
+
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     });
 }
